@@ -129,6 +129,7 @@ import { CustomTemplate } from './utils/template.directive';
             [disabledDatesFilter]="disabledDatesFilter"
             [disabledTimesFilter]="disabledTimesFilter"
             [templates]="templates"
+            [readOnly]="readOnly"
             (dateSelected)="onDateSelected($event)"
             (dateRangeSelected)="onDateRangeSelected($event)"
             (closePicker)="close()"

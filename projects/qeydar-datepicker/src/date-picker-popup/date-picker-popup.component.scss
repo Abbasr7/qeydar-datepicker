@@ -368,3 +368,7 @@ button:disabled {
 .time-picker-section {
   border-inline-start: 1px solid $border-color;
 }
+
+.readOnly {
+  pointer-events: none;
+}

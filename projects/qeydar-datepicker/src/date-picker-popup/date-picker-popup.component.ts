@@ -19,7 +19,7 @@ import { CustomTemplate } from '../utils/template.directive';
     TimePickerComponent
   ],
   template: `
-    <div class="date-picker-popup" [class.rtl]="rtl" [class]="cssClass" tabindex="-1">
+    <div class="date-picker-popup" [class.rtl]="rtl" [class]="cssClass" [class.readOnly]="readOnly" tabindex="-1">
       <div class="date-picker-content">
         <ng-container *ngIf="showSidebar">
           <div *ngIf="isRange" class="period-selector">
@@ -190,6 +190,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Input() showTimePicker = false;
   @Input() timeDisplayFormat = 'HH:mm';
   @Input() dateFormat: string;
+  @Input() readOnly: boolean;
   @Input() disabledDates: Array<Date | string> = [];
   @Input() disabledDatesFilter: (date: Date) => boolean;
   @Input() disabledTimesFilter: (date: Date) => boolean;
