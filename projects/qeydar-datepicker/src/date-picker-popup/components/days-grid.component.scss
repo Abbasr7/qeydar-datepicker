@@ -38,8 +38,8 @@
     }
 
     &.selected, &.range-end.in-range, &.range-start.in-range {
-      background-color: $dp-color-primary;
-      color: $dp-color-primary-text;
+      background-color: $dp-color-primary-button;
+      color: $dp-color-primary-contrast;
     }
 
     &.in-range {
