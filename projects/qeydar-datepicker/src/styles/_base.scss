@@ -1,0 +1,88 @@
+.qeydar-calendar-nav {
+  &-left:before,
+  &-right:before {
+    position: relative;
+    content: "";
+    display: inline-block;
+    height: 6px;
+    width: 6px;
+    vertical-align: baseline;
+    border-style: solid;
+    border-color: $dp-color-text;
+    border-width: 2px 2px 0 0;
+  }
+
+  &-left:before {
+    transform: rotate(-135deg) !important;
+  }
+  &-right:before {
+    transform: rotate(45deg);
+  }
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[tabindex="-1"]:focus {
+  outline: none !important;
+}
+
+.rtl {
+  direction: rtl;
+
+  .arrow {
+    rotate: 180deg;
+  }
+
+  .qeydar-calendar-nav {
+    &-left:before {
+      transform: rotate(45deg) !important;
+    }
+    &-right:before {
+      transform: rotate(-135deg);
+    }
+  }
+
+  .calendar {
+    direction: rtl;
+  }
+}
+
+[dir="rtl"] .arrow {
+  rotate: 180deg;
+}
+
+.time-picker-section {
+  border-inline-start: 1px solid $dp-color-border;
+}
+
+.readOnly {
+  pointer-events: none;
+}
+
+// Base layout rules shared across popup and child components
+
+.date-picker-popup {
+  background: $dp-color-surface;
+  color: $dp-color-text;
+}
+
+.date-picker-content {
+  display: flex;
+}
+
+.calendar {
+  flex: 1 1 auto;
+}
+
+.date-picker-footer {
+  border-top: 1px solid $dp-color-border;
+}
+
+// Sidebar containers keep legacy class names used in templates
+.period-selector,
+.side-selector {
+  @include scroll-y();
+}

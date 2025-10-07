@@ -1,0 +1,79 @@
+// Design tokens: colors, spacing, radii, typography
+
+// CSS variables for theming (default theme on :root)
+:root {
+  --dp-color-bg: #fff;
+  --dp-color-surface: #fff;
+  --dp-color-text: #555;
+  --dp-color-muted: #8a8a8a;
+  --dp-color-border: #e5e5e5;
+  --dp-color-primary: #bfeaff;
+  --dp-color-primary-contrast: #fff;
+  --dp-color-primary-text: #0175e0;
+  --dp-color-primary-button: #1890ff;
+  --dp-color-primary-week: #18396cb0;
+  --dp-color-accent: #ff4081;
+  --dp-color-danger: #d32f2f;
+  --dp-color-success: #2e7d32;
+  --dp-color-warning: #f9a825;
+  --dp-color-hover: #e6f7ff;
+
+  --dp-spacing-0: 0;
+  --dp-spacing-1: 4px;
+  --dp-spacing-2: 8px;
+  --dp-spacing-3: 12px;
+  --dp-spacing-4: 16px;
+  --dp-spacing-5: 20px;
+  --dp-spacing-6: 24px;
+  --dp-spacing-7: 28px;
+  --dp-spacing-8: 32px;
+
+  --dp-radius-0: 0;
+  --dp-radius-1: 4px;
+  --dp-radius-2: 6px;
+  --dp-radius-3: 8px;
+
+  --dp-font-size-xs: 11px;
+  --dp-font-size-sm: 12px;
+  --dp-font-size-md: 14px;
+  --dp-font-size-lg: 16px;
+}
+
+// SCSS variables mapping to CSS variables for convenient usage in SCSS
+$dp-color-bg: var(--dp-color-bg);
+$dp-color-surface: var(--dp-color-surface);
+$dp-color-text: var(--dp-color-text);
+$dp-color-muted: var(--dp-color-muted);
+$dp-color-border: var(--dp-color-border);
+$dp-color-primary: var(--dp-color-primary);
+$dp-color-primary-contrast: var(--dp-color-primary-contrast);
+$dp-color-primary-text: var(--dp-color-primary-text);
+$dp-color-primary-button: var(--dp-color-primary-button);
+$dp-color-primary-week: var(--dp-color-primary-week);
+$dp-color-accent: var(--dp-color-accent);
+$dp-color-danger: var(--dp-color-danger);
+$dp-color-success: var(--dp-color-success);
+$dp-color-warning: var(--dp-color-warning);
+$dp-color-hover: var(--dp-color-hover);
+
+$dp-spacing-0: var(--dp-spacing-0);
+$dp-spacing-1: var(--dp-spacing-1);
+$dp-spacing-2: var(--dp-spacing-2);
+$dp-spacing-3: var(--dp-spacing-3);
+$dp-spacing-4: var(--dp-spacing-4);
+$dp-spacing-5: var(--dp-spacing-5);
+$dp-spacing-6: var(--dp-spacing-6);
+$dp-spacing-7: var(--dp-spacing-7);
+$dp-spacing-8: var(--dp-spacing-8);
+
+$dp-radius-0: var(--dp-radius-0);
+$dp-radius-1: var(--dp-radius-1);
+$dp-radius-2: var(--dp-radius-2);
+$dp-radius-3: var(--dp-radius-3);
+
+$dp-font-size-xs: var(--dp-font-size-xs);
+$dp-font-size-sm: var(--dp-font-size-sm);
+$dp-font-size-md: var(--dp-font-size-md);
+$dp-font-size-lg: var(--dp-font-size-lg);
+
+

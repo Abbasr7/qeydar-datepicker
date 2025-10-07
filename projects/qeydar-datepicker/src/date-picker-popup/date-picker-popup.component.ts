@@ -1,145 +1,112 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList, ViewEncapsulation } from '@angular/core';
 import { DateAdapter, GregorianDateAdapter, JalaliDateAdapter } from '../date-adapter';
 import { CustomLabels, DateRange, Lang_Locale, YearRange } from '../utils/models';
 import { DestroyService, QeydarDatePickerService } from '../date-picker.service';
 import { CalendarType, DatepickerMode } from '../utils/types';
 import { TimePickerComponent } from '../time-picker/time-picker.component';
 import { takeUntil } from 'rxjs';
-import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { CustomTemplate } from '../utils/template.directive';
+import { CalendarHeaderComponent } from './components/calendar-header.component';
+import { CalendarSidebarComponent } from './components/calendar-sidebar.component';
+import { DaysGridComponent } from './components/days-grid.component';
+import { MonthsGridComponent } from './components/months-grid.component';
+import { YearsGridComponent } from './components/years-grid.component';
+import { CalendarFooterComponent } from './components/calendar-footer.component';
 
 @Component({
   selector: 'qeydar-date-picker-popup',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
+  host: {
+    class: 'qeydar-date-picker-popup'
+  },
   imports: [
     NgIf,
-    NgFor,
-    NgTemplateOutlet,
-    TimePickerComponent
+    TimePickerComponent,
+    CalendarHeaderComponent,
+    CalendarSidebarComponent,
+    DaysGridComponent,
+    MonthsGridComponent,
+    YearsGridComponent,
+    CalendarFooterComponent
   ],
   template: `
     <div class="date-picker-popup" [class.rtl]="rtl" [class]="cssClass" [class.readOnly]="readOnly" tabindex="-1">
       <div class="date-picker-content">
-        <ng-container *ngIf="showSidebar">
-          <div *ngIf="isRange" class="period-selector">
-            <button
-              *ngFor="let period of periods"
-              tabindex="-1"
-              [class.active]="isActivePeriod(period)"
-              (click)="selectPeriod(period)"
-            >
-              {{ period.label }}
-              <span *ngIf="period.arrow" class="arrow">→</span>
-            </button>
-          </div>
-          <div *ngIf="!isRange" class="side-selector" #itemSelector>
-            <ng-container *ngIf="viewMode == 'days'">
-              <button 
-                *ngFor="let month of monthListNum"
-                tabindex="-1"
-                [id]="'selector_'+month"
-                [class.active]="isActiveMonth(month)"
-                [disabled]="isMonthDisabled(month)"
-                (click)="selectMonth(month, false)">
-                {{ getMonthName(month) }}
-              </button>
-            </ng-container>
-            <ng-container *ngIf="viewMode == 'months'">
-              <button
-                *ngFor="let year of yearList" 
-                tabindex="-1"
-                [id]="'selector_'+year"
-                [class.active]="isActiveYear(year)"
-                [disabled]="isYearDisabled(year)"
-                (click)="selectYear(year, true)"
-              >
-                {{ year }}
-              </button>
-            </ng-container>
-            <ng-container *ngIf="viewMode == 'years'">
-              <button
-                tabindex="-1"
-                *ngFor="let yearRange of yearRanges" 
-                [id]="'selector_'+yearRange.start"
-                [class.active]="isActiveYearRange(yearRange.start)"
-                [disabled]="isYearRangeDisabled(yearRange)"
-                (click)="selectYearRange(yearRange.start)"
-              >
-                {{ yearRange.start }} - {{ yearRange.end }}
-              </button>
-            </ng-container>
-          </div>
-        </ng-container>
+        <qeydar-calendar-sidebar
+          *ngIf="showSidebar"
+          [showSidebar]="showSidebar"
+          [isRange]="isRange"
+          [viewMode]="viewMode"
+          [periods]="periods"
+          [monthListNum]="monthListNum"
+          [yearList]="yearList"
+          [yearRanges]="yearRanges"
+          [isActivePeriod]="isActivePeriod.bind(this)"
+          [getMonthName]="getMonthName.bind(this)"
+          [isActiveMonth]="isActiveMonth.bind(this)"
+          [isMonthDisabled]="isMonthDisabled.bind(this)"
+          [isActiveYear]="isActiveYear.bind(this)"
+          [isYearDisabled]="isYearDisabled.bind(this)"
+          [isActiveYearRange]="isActiveYearRange.bind(this)"
+          [isYearRangeDisabled]="isYearRangeDisabled.bind(this)"
+          (selectPeriod)="selectPeriod($event)"
+          (selectMonth)="selectMonth($event, false)"
+          (selectYear)="selectYear($event, true)"
+          (selectYearRange)="selectYearRange($event)"
+        ></qeydar-calendar-sidebar>
         <div class="calendar">
-          <div class="header">
-            <button class="qeydar-calendar-nav-left" (click)="goPrev()" [disabled]="isPrevMonthDisabled()" tabindex="-1"></button>
-            <span class="month-year">
-              <span *ngIf="mode != 'year'" class="month-name" (click)="showMonthSelector()">{{ getCurrentMonthName() }}</span>
-              <span class="year" (click)="showYearSelector()">{{ getCurrentYear() }}</span>
-            </span>
-            <button class="qeydar-calendar-nav-right" (click)="goNext()" [disabled]="isNextMonthDisabled()" tabindex="-1"></button>
-          </div>
-          <div *ngIf="viewMode == 'days'">
-            <div *ngIf="viewMode === 'days'" class="weekdays">
-              <span *ngFor="let day of getWeekDays()">{{ day }}</span>
-            </div>
-            <div *ngIf="viewMode === 'days'" class="days">
-              <button
-                *ngFor="let day of days"
-                tabindex="-1"
-                [class.different-month]="!isSameMonth(day, currentDate)"
-                [class.selected]="isSelected(day)"
-                [class.in-range]="isInRange(day)"
-                [class.range-start]="isRangeStart(day)"
-                [class.range-end]="isRangeEnd(day)"
-                [class.today]="isToday(day)"
-                [class.disabled]="isDateDisabled(day)"
-                [disabled]="isDateDisabled(day)"
-                (click)="selectDate(day)"
-                (mouseenter)="onMouseEnter(day,$event)"
-              >
-                <ng-container *ngIf="dayTemplate; else dayDefTemplate">
-                  <ng-container *ngTemplateOutlet="$any(dayTemplate); context: { $implicit: day }"></ng-container>
-                </ng-container>
-                <ng-template #dayDefTemplate>
-                  {{ dateAdapter.getDate(day) }}
-                </ng-template>
-              </button>
-            </div>
-          </div>
-          <div *ngIf="viewMode === 'months'" class="months">
-            <button
-              *ngFor="let month of monthListNum"
-              tabindex="-1"
-              [class.selected]="month === dateAdapter.getMonth(currentDate) + 1"
-              [disabled]="isMonthDisabled(month)"
-              (click)="selectMonth(month,false)"
-            >
-              <ng-container *ngIf="monthTemplate; else monthDefTemplate">
-                <ng-container *ngTemplateOutlet="$any(monthTemplate); context: { $implicit: month }"></ng-container>
-              </ng-container>
-              <ng-template #monthDefTemplate>
-                {{ getMonthName(month) }}
-              </ng-template>
-            </button>
-          </div>
-          <div *ngIf="viewMode === 'years' || mode == 'year'" class="years">
-            <button
-              *ngFor="let year of yearList"
-              tabindex="-1"
-              [class.selected]="year === dateAdapter.getYear(currentDate)"
-              [disabled]="isYearDisabled(year)"
-              (click)="selectYear(year)"
-            >
-              <ng-container *ngIf="yearTemplate; else yearDefTemplate">
-                <ng-container *ngTemplateOutlet="$any(yearTemplate); context: { $implicit: year }"></ng-container>
-              </ng-container>
-              <ng-template #yearDefTemplate>
-                {{ year }}
-              </ng-template>
-            </button>
-          </div>
+          <qeydar-calendar-header
+            [mode]="mode"
+            [currentMonthName]="getCurrentMonthName()"
+            [currentYear]="getCurrentYear()"
+            [prevDisabled]="isPrevMonthDisabled()"
+            [nextDisabled]="isNextMonthDisabled()"
+            (prev)="goPrev()"
+            (next)="goNext()"
+            (showMonths)="showMonthSelector()"
+            (showYears)="showYearSelector()"
+          ></qeydar-calendar-header>
+
+          <qeydar-days-grid
+            [viewMode]="viewMode"
+            [days]="days"
+            [weekDays]="getWeekDays()"
+            [currentDate]="currentDate"
+            [dayTemplate]="$any(dayTemplate)"
+            [isSameMonth]="isSameMonth.bind(this)"
+            [isSelected]="isSelected.bind(this)"
+            [isInRange]="isInRange.bind(this)"
+            [isRangeStart]="isRangeStart.bind(this)"
+            [isRangeEnd]="isRangeEnd.bind(this)"
+            [isToday]="isToday.bind(this)"
+            [isDateDisabled]="isDateDisabled.bind(this)"
+            [getDayNumber]="dateAdapter.getDate.bind(dateAdapter)"
+            (selectDay)="selectDate($event)"
+            (mouseEnter)="onMouseEnter($event, $any(null))"
+          ></qeydar-days-grid>
+
+          <qeydar-months-grid
+            [viewMode]="viewMode"
+            [monthListNum]="monthListNum"
+            [monthTemplate]="$any(monthTemplate)"
+            [isActiveMonthNumber]="isActiveMonthNumber.bind(this)"
+            [isMonthDisabled]="isMonthDisabled.bind(this)"
+            [getMonthName]="getMonthName.bind(this)"
+            (selectMonth)="selectMonth($event,false)"
+          ></qeydar-months-grid>
+
+          <qeydar-years-grid
+            [viewMode]="viewMode"
+            [mode]="mode"
+            [yearList]="yearList"
+            [yearTemplate]="$any(yearTemplate)"
+            [isActiveYear]="isActiveYearNumber.bind(this)"
+            [isYearDisabled]="isYearDisabled.bind(this)"
+            (selectYear)="selectYear($event)"
+          ></qeydar-years-grid>
         </div>
 
         <!-- Time Picker Integration -->
@@ -158,14 +125,16 @@ import { CustomTemplate } from '../utils/template.directive';
           ></qeydar-time-picker>
         </div>
       </div>
-      <div class="date-picker-footer" *ngIf="footerDescription || showTimePicker || showToday">
-        <div class="footer-description" *ngIf="footerDescription" [innerHtml]="footerDescription">
-        </div>
-        <div class="footer-actions">
-          <button *ngIf="showTimePicker" class="footer-button ok" (click)="onOkClick()">{{ lang.ok }}</button>
-          <button *ngIf="showToday" class="footer-button" (click)="onTodayClick()">{{ lang.today }}</button>
-        </div>
-      </div>
+      <qeydar-calendar-footer
+        *ngIf="footerDescription || showTimePicker || showToday"
+        [footerDescription]="footerDescription"
+        [showTimePicker]="showTimePicker"
+        [showToday]="showToday"
+        [okLabel]="lang.ok"
+        [todayLabel]="lang.today"
+        (okClick)="onOkClick()"
+        (todayClick)="onTodayClick()"
+      ></qeydar-calendar-footer>
     </div>
   `,
   styleUrls: ['./date-picker-popup.component.scss']
@@ -203,7 +172,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Output() clickInside = new EventEmitter<boolean>();
 
   // ========== ViewChild Properties ==========
-  @ViewChild('itemSelector') itemSelector: ElementRef;
+  @ViewChild(CalendarSidebarComponent) sidebar: CalendarSidebarComponent;
   @ViewChild(TimePickerComponent) timePicker: TimePickerComponent;
 
   // ========== Class Properties ==========
@@ -224,6 +193,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   monthTemplate: TemplateRef<any>;
   quarterTemplate: TemplateRef<any>;
   yearTemplate: TemplateRef<any>;
+  // helpers for child bindings
+  isActiveMonthNumber = (m: number) => m === this.dateAdapter.getMonth(this.currentDate) + 1;
+  isActiveYearNumber = (y: number) => y === this.dateAdapter.getYear(this.currentDate);
 
   // ========== Getters ==========
   public get getDate(): Date {
@@ -908,10 +880,10 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     }
 
     const itemId = this.determineScrollItemId(id);
-    if (!itemId || !this.itemSelector) return;
+    if (!itemId || !this.sidebar || !this.sidebar.itemSelector) return;
 
     this.timeoutId = setTimeout(() => {
-      const selectedElement = this.itemSelector.nativeElement.querySelector(`#selector_${itemId}`);
+      const selectedElement = this.sidebar.itemSelector.nativeElement.querySelector(`#selector_${itemId}`);
       if (selectedElement) {
         selectedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
