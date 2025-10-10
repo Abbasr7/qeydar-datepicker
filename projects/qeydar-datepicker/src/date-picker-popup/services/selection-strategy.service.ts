@@ -3,10 +3,9 @@ import { DateAdapter } from '../../date-adapter';
 import { CustomLabels, DateRange } from '../../utils/models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SelectionStrategyService {
-
   /**
    * Check if a date is selected (for single selection)
    */
@@ -55,8 +54,10 @@ export class SelectionStrategyService {
     }
 
     const endDate = selectedEndDate || tempEndDate;
-    return dateAdapter.isAfter(date, selectedStartDate) && 
-           dateAdapter.isBefore(date, endDate);
+    return (
+      dateAdapter.isAfter(date, selectedStartDate) &&
+      dateAdapter.isBefore(date, endDate)
+    );
   }
 
   /**
@@ -68,8 +69,10 @@ export class SelectionStrategyService {
     selectedEndDate: Date | null,
     dateAdapter: DateAdapter<Date>
   ): boolean {
-    return this.isRangeStart(date, selectedStartDate, dateAdapter) || 
-           this.isRangeEnd(date, selectedEndDate, dateAdapter);
+    return (
+      this.isRangeStart(date, selectedStartDate, dateAdapter) ||
+      this.isRangeEnd(date, selectedEndDate, dateAdapter)
+    );
   }
 
   /**
@@ -82,14 +85,14 @@ export class SelectionStrategyService {
     existingTime?: Date
   ): { selectedDate: Date; shouldEmit: boolean } {
     let finalDate = date;
-    
+
     if (showTimePicker && existingTime) {
       finalDate = this.applyTimeToDate(date, existingTime);
     }
 
     return {
       selectedDate: finalDate,
-      shouldEmit: !showTimePicker
+      shouldEmit: !showTimePicker,
     };
   }
 
@@ -102,34 +105,36 @@ export class SelectionStrategyService {
     selectedEndDate: Date | null,
     showTimePicker: boolean,
     existingTime?: Date
-  ): { 
-    selectedStartDate: Date | null; 
-    selectedEndDate: Date | null; 
+  ): {
+    selectedStartDate: Date | null;
+    selectedEndDate: Date | null;
     shouldEmit: boolean;
     activeInput: 'start' | 'end';
   } {
     let finalDate = date;
-    
+
     if (showTimePicker && existingTime) {
       finalDate = this.applyTimeToDate(date, existingTime);
     }
 
     // If no start date or both dates are selected or new date is before start date
-    if (!selectedStartDate || 
-        (selectedStartDate && selectedEndDate) || 
-        this.isDateBefore(date, selectedStartDate)) {
+    if (
+      !selectedStartDate ||
+      (selectedStartDate && selectedEndDate) ||
+      this.isDateBefore(date, selectedStartDate)
+    ) {
       return {
         selectedStartDate: finalDate,
         selectedEndDate: null,
         shouldEmit: true,
-        activeInput: 'end'
+        activeInput: 'end',
       };
     } else {
       return {
         selectedStartDate,
         selectedEndDate: finalDate,
         shouldEmit: true,
-        activeInput: 'end'
+        activeInput: 'end',
       };
     }
   }
@@ -141,19 +146,43 @@ export class SelectionStrategyService {
     period: CustomLabels,
     selectedStartDate: Date | null,
     selectedEndDate: Date | null,
-    dateAdapter: DateAdapter<Date>
+    dateAdapter: DateAdapter<Date>,
+    allPeriods: CustomLabels[]
   ): boolean {
+    if (!selectedStartDate || !selectedEndDate) return false;
+
     if (period.value === 'custom') {
-      return false; // Custom period is active when no other period is active
+      const otherPeriods = allPeriods.filter((p) => p.value !== 'custom');
+      const hasActiveOther = otherPeriods.some((p) =>
+        this.isPeriodMatch(p, selectedStartDate, selectedEndDate, dateAdapter)
+      );
+      return !hasActiveOther;
     }
 
+    return this.isPeriodMatch(
+      period,
+      selectedStartDate,
+      selectedEndDate,
+      dateAdapter
+    );
+  }
+
+  /**
+   * Check if a period is matched (for sidebar periods)
+   */
+  isPeriodMatch(
+    period: CustomLabels,
+    selectedStartDate: Date,
+    selectedEndDate: Date,
+    dateAdapter: DateAdapter<Date>
+  ): boolean {
     const [start, end] = period.value as Date[];
-    
+
     const sameStart = dateAdapter.isEqual(
       dateAdapter.startOfDay(start),
       dateAdapter.startOfDay(selectedStartDate)
     );
-    
+
     const sameEnd = dateAdapter.isEqual(
       dateAdapter.startOfDay(end),
       dateAdapter.startOfDay(selectedEndDate)
@@ -165,15 +194,15 @@ export class SelectionStrategyService {
   /**
    * Handle period selection
    */
-  selectPeriod(period: CustomLabels): { 
-    selectedPeriod: any; 
-    dateRange?: DateRange; 
-    isCustom: boolean 
+  selectPeriod(period: CustomLabels): {
+    selectedPeriod: any;
+    dateRange?: DateRange;
+    isCustom: boolean;
   } {
     if (period.value === 'custom') {
       return {
         selectedPeriod: 'custom',
-        isCustom: true
+        isCustom: true,
       };
     }
 
@@ -181,7 +210,7 @@ export class SelectionStrategyService {
     return {
       selectedPeriod: period.value,
       dateRange: { start, end },
-      isCustom: false
+      isCustom: false,
     };
   }
 
@@ -214,7 +243,10 @@ export class SelectionStrategyService {
   /**
    * Check if range selection is complete
    */
-  isRangeComplete(selectedStartDate: Date | null, selectedEndDate: Date | null): boolean {
+  isRangeComplete(
+    selectedStartDate: Date | null,
+    selectedEndDate: Date | null
+  ): boolean {
     return !!(selectedStartDate && selectedEndDate);
   }
 
@@ -242,31 +274,31 @@ export class SelectionStrategyService {
     activeInput: 'start' | 'end' | '',
     selectedStartDate: Date | null,
     selectedEndDate: Date | null
-  ): { 
-    selectedStartDate: Date | null; 
-    selectedEndDate: Date | null; 
-    shouldEmit: boolean 
+  ): {
+    selectedStartDate: Date | null;
+    selectedEndDate: Date | null;
+    shouldEmit: boolean;
   } {
     if (activeInput === 'start' && selectedStartDate) {
       const updatedDate = this.applyTimeToDate(selectedStartDate, timeDate);
       return {
         selectedStartDate: updatedDate,
         selectedEndDate,
-        shouldEmit: true
+        shouldEmit: true,
       };
     } else if (activeInput === 'end' && selectedEndDate) {
       const updatedDate = this.applyTimeToDate(selectedEndDate, timeDate);
       return {
         selectedStartDate,
         selectedEndDate: updatedDate,
-        shouldEmit: true
+        shouldEmit: true,
       };
     }
 
     return {
       selectedStartDate,
       selectedEndDate,
-      shouldEmit: false
+      shouldEmit: false,
     };
   }
 
@@ -280,14 +312,14 @@ export class SelectionStrategyService {
     if (!selectedDate) {
       return {
         selectedDate: new Date(),
-        shouldEmit: false
+        shouldEmit: false,
       };
     }
 
     const updatedDate = this.applyTimeToDate(selectedDate, timeDate);
     return {
       selectedDate: updatedDate,
-      shouldEmit: false
+      shouldEmit: false,
     };
   }
 
@@ -308,7 +340,11 @@ export class SelectionStrategyService {
   /**
    * Check if date is today
    */
-  isToday(date: Date, dateAdapter: DateAdapter<Date>, showToday: boolean): boolean {
+  isToday(
+    date: Date,
+    dateAdapter: DateAdapter<Date>,
+    showToday: boolean
+  ): boolean {
     return showToday && dateAdapter.isSameDay(date, dateAdapter.today());
   }
 }
