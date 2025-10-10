@@ -9,7 +9,7 @@ import { DisabledTimes } from './demos/disabled/diabled-time';
 import { CustomRender } from './demos/custom-render';
 import { HijriDemoComponent } from './demos/hijri-demo.component';
 import { BidiModule } from "@angular/cdk/bidi";
-import { QeydarDatePickerModule } from 'qeydar-datepicker';
+import { QeydarDatePickerModule } from '@qeydar/datepicker';
 
 @NgModule({
   declarations: [
