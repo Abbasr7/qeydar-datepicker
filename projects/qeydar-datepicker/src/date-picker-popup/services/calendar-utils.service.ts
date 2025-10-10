@@ -28,16 +28,16 @@ export class CalendarUtilsService {
    * Generate year list around a specific year
    */
   generateYearList(centerYear: number, length: number = 15): number[] {
-    const start = centerYear - Math.round(length / 2);
+    const start = centerYear - Math.floor(length / 2);
     return Array.from({ length }, (_, i) => start + i);
   }
 
   /**
    * Generate year ranges for year selector
    */
-  generateYearRanges(length: number = 15): YearRange[] {
+  generateYearRanges(length: number = 15,dateAdapter: DateAdapter<Date>): YearRange[] {
     const yearCount = 15;
-    const currentYear = new Date().getFullYear();
+    const currentYear = dateAdapter.getYear(new Date);
     const startYear = currentYear - Math.floor(yearCount/2) - (yearCount * Math.floor(length/2));
     const yearRanges: YearRange[] = [];
     
@@ -244,7 +244,7 @@ export class CalendarUtilsService {
    * Check if year range is active
    */
   isActiveYearRange(startYear: number, yearList: number[]): boolean {
-    return startYear === yearList[0];
+    return yearList?.includes(startYear);
   }
 
   /**
