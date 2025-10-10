@@ -1,10 +1,11 @@
 {
   "name": "qeydar-datepicker",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build-package": "ng build @qeydar/datepicker",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -19,7 +20,7 @@
     "@angular/platform-browser": "^14.2.0",
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
-    "@qeydar/datepicker": ">=1.2.3",
+    "@qeydar/datepicker": ">=1.2.4",
     "date-fns": "^4.1.0",
     "date-fns-jalali": "^4.1.0-0",
     "rxjs": "~7.5.0",
