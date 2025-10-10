@@ -3,15 +3,14 @@ import { DateAdapter } from '../../date-adapter';
 import { YearRange } from '../../utils/models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ValidationStrategyService {
-
   /**
    * Check if a date is disabled based on various criteria
    */
   isDateDisabled(
-    date: Date, 
+    date: Date,
     dateAdapter: DateAdapter<Date>,
     minDate?: Date | null,
     maxDate?: Date | null,
@@ -28,15 +27,19 @@ export class ValidationStrategyService {
     }
 
     // Check if date is in disabled dates array
-    const parsedDisabledDates = this.parseDisabledDates(disabledDates || [], dateAdapter, dateFormat);
-    const isDisabledDate = parsedDisabledDates.some(disabledDate => 
+    const parsedDisabledDates = this.parseDisabledDates(
+      disabledDates || [],
+      dateAdapter,
+      dateFormat
+    );
+    const isDisabledDate = parsedDisabledDates.some((disabledDate) =>
       dateAdapter.isSameDay(date, disabledDate)
     );
 
     // Check custom filter function if provided
-    const isFilterDisabled = disabledDatesFilter ? 
-      disabledDatesFilter(date) : 
-      false;
+    const isFilterDisabled = disabledDatesFilter
+      ? disabledDatesFilter(date)
+      : false;
 
     return isDisabledDate || isFilterDisabled;
   }
@@ -45,8 +48,8 @@ export class ValidationStrategyService {
    * Check if a month is disabled (all days in month are disabled)
    */
   isMonthDisabled(
-    month: number, 
-    year: number, 
+    month: number,
+    year: number,
     dateAdapter: DateAdapter<Date>,
     minDate?: Date | null,
     maxDate?: Date | null,
@@ -55,19 +58,29 @@ export class ValidationStrategyService {
     dateFormat?: string
   ): boolean {
     const startOfMonth = dateAdapter.createDate(year, month - 1, 1);
-    
+
     // Check if all days in month are disabled
     const daysInMonth = dateAdapter.getDaysInMonth(startOfMonth);
     let allDaysDisabled = true;
-    
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = dateAdapter.createDate(year, month - 1, day);
-      if (!this.isDateDisabled(date, dateAdapter, minDate, maxDate, disabledDates, disabledDatesFilter, dateFormat)) {
+      if (
+        !this.isDateDisabled(
+          date,
+          dateAdapter,
+          minDate,
+          maxDate,
+          disabledDates,
+          disabledDatesFilter,
+          dateFormat
+        )
+      ) {
         allDaysDisabled = false;
         break;
       }
     }
-    
+
     return allDaysDisabled;
   }
 
@@ -75,7 +88,7 @@ export class ValidationStrategyService {
    * Check if a year is disabled (all months in year are disabled)
    */
   isYearDisabled(
-    year: number, 
+    year: number,
     dateAdapter: DateAdapter<Date>,
     minDate?: Date | null,
     maxDate?: Date | null,
@@ -96,7 +109,17 @@ export class ValidationStrategyService {
       date.getFullYear() == firstOfMonth.getFullYear();
       date = dateAdapter.addDays(firstOfMonth, day++)
     ) {
-      if (!this.isDateDisabled(date, dateAdapter, minDate, maxDate, disabledDates, disabledDatesFilter, dateFormat)) {
+      if (
+        !this.isDateDisabled(
+          date,
+          dateAdapter,
+          minDate,
+          maxDate,
+          disabledDates,
+          disabledDatesFilter,
+          dateFormat
+        )
+      ) {
         return false;
       }
     }
@@ -121,7 +144,17 @@ export class ValidationStrategyService {
 
     // Check if all years in range are disabled
     for (let year = yearRange.start; year <= yearRange.end; year++) {
-      if (!this.isYearDisabled(year, dateAdapter, minDate, maxDate, disabledDates, disabledDatesFilter, dateFormat)) {
+      if (
+        !this.isYearDisabled(
+          year,
+          dateAdapter,
+          minDate,
+          maxDate,
+          disabledDates,
+          disabledDatesFilter,
+          dateFormat
+        )
+      ) {
         return false;
       }
     }
@@ -142,16 +175,31 @@ export class ValidationStrategyService {
     if (!minDate) return false;
 
     const minYear = dateAdapter.getYear(minDate);
+    const minMonth = dateAdapter.getMonth(minDate);
+    const currentYear = dateAdapter.getYear(currentDate);
+    const currentMonth = dateAdapter.getMonth(currentDate);
 
     switch (viewMode) {
       case 'days':
-        const prevMonth = dateAdapter.getMonth(currentDate) - 1;
-        return dateAdapter.getMonth(minDate) > prevMonth;
+        const prevMonthUnnorm = currentMonth - 1;
+        const prevMonthYear = currentYear + Math.floor(prevMonthUnnorm / 12);
+        // نرمال‌سازی برای مقادیر منفی
+        const prevMonthIndex = (prevMonthUnnorm + 12) % 12;
+
+        if (minYear > prevMonthYear) return true;
+        if (minYear === prevMonthYear && minMonth > prevMonthIndex) return true;
+        return false;
+
       case 'months':
-        const prevYear = dateAdapter.getYear(currentDate) - 1;
+        const prevYear = currentYear - 1;
         return minYear > prevYear;
+
       case 'years':
-        return yearList ? minYear > yearList[yearList.length - 1] : false;
+        if (!yearList || yearList.length === 0) return false;
+        const minDisplayedYear = Math.min(...yearList);
+        const prevLastYear = minDisplayedYear - 1;
+        return minYear > prevLastYear;
+
       default:
         return false;
     }
@@ -170,16 +218,29 @@ export class ValidationStrategyService {
     if (!maxDate) return false;
 
     const maxYear = dateAdapter.getYear(maxDate);
+    const maxMonth = dateAdapter.getMonth(maxDate);
+    const currentYear = dateAdapter.getYear(currentDate);
+    const currentMonth = dateAdapter.getMonth(currentDate);
 
     switch (viewMode) {
       case 'days':
-        const nextMonth = dateAdapter.getMonth(currentDate) + 1;
-        return dateAdapter.getMonth(maxDate) < nextMonth;
+        const nextMonthUnnorm = currentMonth + 1;
+        const nextMonthYear = currentYear + Math.floor(nextMonthUnnorm / 12);
+        const nextMonthIndex = nextMonthUnnorm % 12;
+
+        // اگر maxDate قبل از شروع ماه بعدی باشد، navigation غیرفعال است
+        if (maxYear < nextMonthYear) return true;
+        if (maxYear === nextMonthYear && maxMonth < nextMonthIndex) return true;
+        return false;
+
       case 'months':
-        const nextYear = dateAdapter.getYear(currentDate) + 1;
+        const nextYear = currentYear + 1;
         return maxYear < nextYear;
       case 'years':
-        return yearList ? maxYear < yearList[0] : false;
+        if (!yearList || yearList.length === 0) return false;
+        const maxDisplayedYear = Math.max(...yearList);
+        const nextFirstYear = maxDisplayedYear + 1;
+        return maxYear < nextFirstYear;
       default:
         return false;
     }
@@ -189,17 +250,19 @@ export class ValidationStrategyService {
    * Parse disabled dates from various formats
    */
   parseDisabledDates(
-    disabledDates: Array<Date | string>, 
-    dateAdapter: DateAdapter<Date>, 
+    disabledDates: Array<Date | string>,
+    dateAdapter: DateAdapter<Date>,
     dateFormat?: string
   ): Date[] {
-    return disabledDates.map(date => {
-      if (date instanceof Date) {
-        return dateAdapter.startOfDay(date);
-      }
-      const parsedDate = dateAdapter.parse(date, dateFormat);
-      return parsedDate || null;
-    }).filter(date => date !== null) as Date[];
+    return disabledDates
+      .map((date) => {
+        if (date instanceof Date) {
+          return dateAdapter.startOfDay(date);
+        }
+        const parsedDate = dateAdapter.parse(date, dateFormat);
+        return parsedDate || null;
+      })
+      .filter((date) => date !== null) as Date[];
   }
 
   /**
@@ -212,7 +275,7 @@ export class ValidationStrategyService {
     maxDate?: Date | null
   ): Date {
     let adjustedDate = currentDate;
-    
+
     if (minDate && dateAdapter.isBefore(adjustedDate, minDate)) {
       adjustedDate = minDate;
     } else if (maxDate && dateAdapter.isAfter(adjustedDate, maxDate)) {
@@ -265,7 +328,7 @@ export class ValidationStrategyService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
