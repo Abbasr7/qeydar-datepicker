@@ -15,7 +15,7 @@ This package supports Angular 14 and above. Specific version compatibility:
 | 1.x.x          | ≥14.0.0        |
 
 ## Demo
-You can see the online [Demo](https://datepicker.qydr.ir/)
+You can see the online [Demo](https://qeydar-datepicker-git-master-abbasr7s-projects.vercel.app/)
 
 ## Components
 This package includes two main components:
@@ -369,6 +369,9 @@ export class AppComponent {
   }
 }
 ```
+
+### Custom Adapters
+For details on implementing custom adapters, see the [CUSTOM_ADAPTERS.md](./projects/qeydar-datepicker/CUSTOM_ADAPTERS.md) guide.
 
 ## API Reference
 
