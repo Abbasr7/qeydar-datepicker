@@ -1,0 +1,37 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid $dp-color-border;
+
+  button {
+    @include button-reset();
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 5px;
+  }
+
+  .month-name,
+  .year {
+    color: $dp-color-text;
+  }
+}
+
+.month-year {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.month-name,
+.year {
+  margin: 0 5px;
+}
+
+

@@ -1,0 +1,56 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+%selector-shared {
+  width: 120px;
+  border-inline-end: 1px solid $dp-color-border;
+}
+
+%selector-button-shared {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  width: 100%;
+  padding: 10px;
+  text-align: start;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-block-end: 1px solid $dp-color-border;
+  color: $dp-color-text;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: $dp-color-hover;
+  }
+
+  &.active {
+    background-color: $dp-color-primary;
+    color: $dp-color-primary-text;
+    width: 100%;
+  }
+}
+
+.period-selector {
+  @extend %selector-shared;
+
+  button {
+    @extend %selector-button-shared;
+  }
+}
+
+.side-selector {
+  @extend %selector-shared;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  height: 100%;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  button {
+    @extend %selector-button-shared;
+  }
+}

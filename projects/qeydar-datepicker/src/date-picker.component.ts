@@ -1,7 +1,7 @@
-import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, AbstractControl, ValidationErrors, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { slideMotion } from './utils/animation/slide';
-import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter } from './date-adapter';
+import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter, DATE_ADAPTER, provideDateAdapter } from './date-adapter';
 import { CustomLabels, DateRange, Lang_Locale, RangeInputLabels } from './utils/models';
 import { DatePickerPopupComponent } from './date-picker-popup/date-picker-popup.component';
 import { CdkOverlayOrigin, ConnectedOverlayPositionChange, ConnectionPositionPair, HorizontalConnectionPos, OverlayModule, VerticalConnectionPos } from '@angular/cdk/overlay';
@@ -114,7 +114,7 @@ import { CustomTemplate } from './utils/template.directive';
             [mode]="mode"
             [isRange]="isRange"
             [customLabels]="customLabels"
-            [calendarType]="calendarType"
+            [dateAdapter]="currentDateAdapter"
             [minDate]="minDate"
             [maxDate]="maxDate"
             [cssClass]="cssClass"
@@ -129,6 +129,7 @@ import { CustomTemplate } from './utils/template.directive';
             [disabledDatesFilter]="disabledDatesFilter"
             [disabledTimesFilter]="disabledTimesFilter"
             [templates]="templates"
+            [readOnly]="readOnly"
             (dateSelected)="onDateSelected($event)"
             (dateRangeSelected)="onDateRangeSelected($event)"
             (closePicker)="close()"
@@ -308,6 +309,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   @Input() allowEmpty = false;
   @Input() readOnly = false;
   @Input() readOnlyInput = false;
+  @Input() dateAdapter: DateAdapter<Date> | null = null;
   @Input() set minDate(date: Date | string | null) {
     if (date) {
       this._minDate = date;
@@ -359,7 +361,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   selectedStartDate: Date | null = null;
   selectedEndDate: Date | null = null;
   form: FormGroup;
-  dateAdapter: DateAdapter<Date>;
+  currentDateAdapter: DateAdapter<Date>;
   activeInput: 'start' | 'end' | '' = '';
   hideStateHelper = false;
   isInternalChange = false;
@@ -387,6 +389,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     public jalali: JalaliDateAdapter,
     public gregorian: GregorianDateAdapter,
     @Inject(DOCUMENT) doc: Document,
+    @Optional() @Inject(DATE_ADAPTER) private injectedDateAdapter: DateAdapter<Date>
   ) {
     this.initializeComponent(doc);
   }
@@ -438,8 +441,26 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   // ========== Date Adapter Methods ==========
-  setDateAdapter(): void {
-    this.dateAdapter = this.calendarType === 'jalali' ? this.jalali : this.gregorian;
+  setDateAdapter(): void {    
+    // Update the injected adapter to match the selected adapter
+    if (this.injectedDateAdapter && !this.currentDateAdapter) {
+      this.currentDateAdapter = this.injectedDateAdapter;
+    }
+    // اولویت اول: اگر کاربر از طریق @Input یک dateAdapter شخصی پاس داده باشد
+    if (this.dateAdapter) {
+      this.currentDateAdapter = this.dateAdapter;
+      return;
+    }
+    // اولویت دوم: اگر از طریق provider یک dateAdapter شخصی تزریق شده باشد
+    if (this.injectedDateAdapter) {
+      this.currentDateAdapter = this.injectedDateAdapter;
+      return;
+    }
+    // اولویت سوم: انتخاب بر اساس calendarType
+    this.currentDateAdapter =
+      this.calendarType === 'jalali'
+        ? this.jalali
+        : this.gregorian;
   }
 
   // ========== Form Control Methods ==========
@@ -459,6 +480,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       this.updateInputValue();
       this.lang = this.calendarType === 'jalali' ? this.dpService.locale_fa : this.dpService.locale_en;
       this.dpService.locale = this.lang;
+    }
+    if (changes['dateAdapter']) {
+      this.setDateAdapter();
+      this.updateInputValue();
     }
     if (changes['minDate'] || changes['maxDate']) {
       this._minDate = this.valueAdapter?.parse(this._minDate,this.extractDateFormat(this.format));
@@ -509,7 +534,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   handleRangeInputChange(value: string, inputType?: 'start' | 'end'): void {
-    const date = this.dateAdapter.parse(value, this.format);
+    const date = this.currentDateAdapter.parse(value, this.format);
     if (date) {
       if (inputType === 'start') {
         this.selectedStartDate = this.clampDate(date);
@@ -521,7 +546,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   handleSingleInputChange(value: string): void {
-    const date = this.dateAdapter.parse(value, this.format);
+    const date = this.currentDateAdapter.parse(value, this.format);
     if (date) {
       this.selectedDate = this.clampDate(date);
       this.emitValueIfChanged();
@@ -567,14 +592,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   handleRangeDateSelection(date: Date): void {
     if (!this.selectedStartDate || (this.selectedStartDate && this.selectedEndDate) ||
-      this.dateAdapter.isBefore(date, this.selectedStartDate)) {
+      this.currentDateAdapter.isBefore(date, this.selectedStartDate)) {
       this.selectedStartDate = date;
       this.selectedEndDate = null;
-      this.form.get('startDateInput')?.setValue(this.dateAdapter.format(date, this.format), { emitEvent: false });
+      this.form.get('startDateInput')?.setValue(this.currentDateAdapter.format(date, this.format), { emitEvent: false });
       this.form.get('endDateInput')?.setValue('', { emitEvent: false });
     } else {
       this.selectedEndDate = date;
-      this.form.get('endDateInput')?.setValue(this.dateAdapter.format(date, this.format), { emitEvent: false });
+      this.form.get('endDateInput')?.setValue(this.currentDateAdapter.format(date, this.format), { emitEvent: false });
       this.emitValueIfChanged();
       this.close();
     }
@@ -582,9 +607,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   handleSingleDateSelection(date: Date): void {
     this.selectedDate = date;
-    const formattedDate = this.dateAdapter.format(date, this.format);
-    this.form.get('dateInput')?.setValue(formattedDate, { emitEvent: false });
-    this.emitValueIfChanged();
+    if (date) {
+      const formattedDate = this.currentDateAdapter.format(date, this.format);
+      this.form.get('dateInput')?.setValue(formattedDate, { emitEvent: false });
+      this.emitValueIfChanged();
+    }
     this.close();
   }
 
@@ -593,12 +620,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     this.hideStateHelper = true;
 
     this.selectedStartDate = this.clampDate(<Date>dateRange.start);
-    const startFormatted = this.dateAdapter.format(this.selectedStartDate, this.format);
+    const startFormatted = this.currentDateAdapter.format(this.selectedStartDate, this.format);
     this.form.get('startDateInput')?.setValue(startFormatted, { emitEvent: false });
 
     if (dateRange.end) {
       this.selectedEndDate = this.clampDate(<Date>dateRange.end);
-      const endFormatted = this.dateAdapter.format(this.selectedEndDate, this.format);
+      const endFormatted = this.currentDateAdapter.format(this.selectedEndDate, this.format);
       this.form.get('endDateInput')?.setValue(endFormatted, { emitEvent: false });
       this.emitValueIfChanged();
       if (!this.hasTimeComponent(this.format)) this.close();
@@ -665,12 +692,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   clampDate(date: Date): Date {
     if (!date) return date;
 
-    let adjustedDate = this.dateAdapter.clone(date);
+    let adjustedDate = this.currentDateAdapter.clone(date);
 
-    if (this.minDate && this.dateAdapter.isBefore(adjustedDate, this.minDate)) {
+    if (this.minDate && this.currentDateAdapter.isBefore(adjustedDate, this.minDate)) {
       return this.minDate;
     }
-    if (this.maxDate && this.dateAdapter.isAfter(adjustedDate, this.maxDate)) {
+    if (this.maxDate && this.currentDateAdapter.isAfter(adjustedDate, this.maxDate)) {
       return this.maxDate;
     }
 
@@ -697,12 +724,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   findNearestValidDate(date: Date) {
-    let nextDate = this.dateAdapter.addDays(date, 1);
-    let prevDate = this.dateAdapter.addDays(date, -1);
+    let nextDate = this.currentDateAdapter.addDays(date, 1);
+    let prevDate = this.currentDateAdapter.addDays(date, -1);
 
     while (this.isDateDisabled(nextDate) && this.isDateDisabled(prevDate)) {
-      nextDate = this.dateAdapter.addDays(nextDate, 1);
-      prevDate = this.dateAdapter.addDays(prevDate, -1);
+      nextDate = this.currentDateAdapter.addDays(nextDate, 1);
+      prevDate = this.currentDateAdapter.addDays(prevDate, -1);
     }
 
     // Return the first non-disabled date found
@@ -715,20 +742,20 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   validateAndNormalizeTime(date: Date): { isValid: boolean; normalizedDate: Date | null } {
-    if (!this.dateAdapter) {
+    if (!this.currentDateAdapter) {
       return { isValid: false, normalizedDate: null };
     }
  
     let isValid = true;
-    let normalizedDate = this.dateAdapter.clone(date);
+    let normalizedDate = this.currentDateAdapter.clone(date);
 
     if (this.isTimeDisabled(normalizedDate)) {
       isValid = false;
 
       // Get start and end of the current day
-      const startOfDay = this.dateAdapter.clone(date);
+      const startOfDay = this.currentDateAdapter.clone(date);
       startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = this.dateAdapter.clone(date);
+      const endOfDay = this.currentDateAdapter.clone(date);
       endOfDay.setHours(23, 59, 59, 999);
 
       // Try to find nearest valid time within the same day
@@ -738,7 +765,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
       // Check forward
       for (let i = 1; i <= maxForwardMinutes; i++) {
-        const nextTime = this.dateAdapter.clone(date);
+        const nextTime = this.currentDateAdapter.clone(date);
         nextTime.setHours(Math.floor((currentMinutes + i) / 60), (currentMinutes + i) % 60, 0);
         if (nextTime.getTime() <= endOfDay.getTime() && !this.isTimeDisabled(nextTime)) {
           normalizedDate = nextTime;
@@ -750,7 +777,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       // Check backward
       if (!validTimeFound)
         for (let i = 1; i < currentMinutes; i++) {
-          const prevTime = this.dateAdapter.clone(date);
+          const prevTime = this.currentDateAdapter.clone(date);
           prevTime.setHours(Math.floor((currentMinutes - i) / 60), (currentMinutes - i) % 60, 0);
           if (prevTime.getTime() >= startOfDay.getTime() && !this.isTimeDisabled(prevTime)) {
             normalizedDate = prevTime;
@@ -770,9 +797,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   parseDisabledDates(): Date[] {
     return this.disabledDates.map(date => {
       if (date instanceof Date) {
-        return this.dateAdapter.startOfDay(date);
+        return this.currentDateAdapter.startOfDay(date);
       }
-      const parsedDate = this.dateAdapter.parse(date, this.extractDateFormat(this.format));
+      const parsedDate = this.currentDateAdapter.parse(date, this.extractDateFormat(this.format));
       return parsedDate || null;
     }).filter(date => date !== null) as Date[];
   }
@@ -780,11 +807,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   isDateDisabled(date: Date): boolean {
     if (!date) return false;
   
-    const dateToCheck = this.dateAdapter.startOfDay(date);
+    const dateToCheck = this.currentDateAdapter.startOfDay(date);
     // Check if date is in disabled dates array
     const parsedDisabledDates = this.parseDisabledDates();
     const isDisabledDate = parsedDisabledDates.some(disabledDate => 
-      this.dateAdapter.isSameDay(dateToCheck, disabledDate)
+      this.currentDateAdapter.isSameDay(dateToCheck, disabledDate)
     );
   
     // Check custom filter function if provided
@@ -805,7 +832,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (!value) return null;
 
     const format = this.getFormatForMode();
-    if (!this.dateAdapter.isValidFormat(value, format)) {
+    if (!this.currentDateAdapter.isValidFormat(value, format)) {
       return { invalidFormat: true };
     }
     return null;
@@ -885,14 +912,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   validateAndCorrectInput(value: string): string {
-    let date = this.dateAdapter.parse(value, this.format);
+    let date = this.currentDateAdapter.parse(value, this.format);
     if (!date) {
-      const today = this.dateAdapter.today();
+      const today = this.currentDateAdapter.today();
       date = this.clampDate(today);
     } else {
       date = this.clampDate(date);
     }
-    return this.dateAdapter.format(date, this.format);
+    return this.currentDateAdapter.format(date, this.format);
   }
 
   handleCorrectedValue(inputType: 'start' | 'end' | null, correctedValue: string): void {
@@ -908,16 +935,16 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   handleRangeCorrectedValue(inputType: 'start' | 'end' | null, correctedValue: string): void {
     if (inputType === 'start') {
       this.form.get('startDateInput')?.setValue(correctedValue);
-      this.selectedStartDate = this.dateAdapter.parse(correctedValue, this.format);
+      this.selectedStartDate = this.currentDateAdapter.parse(correctedValue, this.format);
     } else {
       this.form.get('endDateInput')?.setValue(correctedValue);
-      this.selectedEndDate = this.dateAdapter.parse(correctedValue, this.format);
+      this.selectedEndDate = this.currentDateAdapter.parse(correctedValue, this.format);
     }
     
     if (this.selectedStartDate && this.selectedEndDate) {
       this.onChange({
-        start: this.dateAdapter.format(this.selectedStartDate, this.format),
-        end: this.dateAdapter.format(this.selectedEndDate, this.format)
+        start: this.currentDateAdapter.format(this.selectedStartDate, this.format),
+        end: this.currentDateAdapter.format(this.selectedEndDate, this.format)
       });
     }
     
@@ -930,7 +957,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   handleSingleCorrectedValue(correctedValue: string): void {
     this.form.get('dateInput')?.setValue(correctedValue);
-    this.selectedDate = this.dateAdapter.parse(correctedValue, this.format);
+    this.selectedDate = this.currentDateAdapter.parse(correctedValue, this.format);
     this.onChange(this.selectedDate);
     
     if (this.datePickerPopup) {
@@ -972,17 +999,17 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (this.isRange) {
       if (this.selectedStartDate) {
         this.form.get('startDateInput')?.setValue(
-          this.dateAdapter.format(this.selectedStartDate, this.format)
+          this.currentDateAdapter.format(this.selectedStartDate, this.format)
         );
       }
       if (this.selectedEndDate) {
         this.form.get('endDateInput')?.setValue(
-          this.dateAdapter.format(this.selectedEndDate, this.format)
+          this.currentDateAdapter.format(this.selectedEndDate, this.format)
         );
       }
     } else if (this.selectedDate) {
       this.form.get('dateInput')?.setValue(
-        this.dateAdapter.format(this.selectedDate, this.format)
+        this.currentDateAdapter.format(this.selectedDate, this.format)
       );
     }
   }
@@ -1023,7 +1050,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       case 'gregorian':
         return this.gregorian.format(date, this.format);
       default:
-        return this.dateAdapter.format(date, this.format);
+        return this.currentDateAdapter.format(date, this.format);
     }
   }
 
@@ -1042,7 +1069,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
         if (startDate) {
           this.selectedStartDate = startDate;
           this.form.get('startDateInput')?.setValue(
-            this.dateAdapter.format(startDate, this.format),
+            this.currentDateAdapter.format(startDate, this.format),
             { emitEvent: false }
           );
         }
@@ -1050,7 +1077,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
         if (endDate) {
           this.selectedEndDate = endDate;
           this.form.get('endDateInput')?.setValue(
-            this.dateAdapter.format(endDate, this.format),
+            this.currentDateAdapter.format(endDate, this.format),
             { emitEvent: false }
           );
         }
@@ -1059,7 +1086,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
         if (parsedDate) {
           this.selectedDate = parsedDate;
           this.form.get('dateInput')?.setValue(
-            this.dateAdapter.format(parsedDate, this.format),
+            this.currentDateAdapter.format(parsedDate, this.format),
             { emitEvent: false }
           );
         }
@@ -1126,7 +1153,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (value instanceof Date) {
       return value;
     }
-    return this.dateAdapter.parse(value, this.format);
+    return this.currentDateAdapter.parse(value, this.format);
   }
 
   parseValueFromFormat(value: string | Date, targetAdapter: DateAdapter<Date>): Date | null {

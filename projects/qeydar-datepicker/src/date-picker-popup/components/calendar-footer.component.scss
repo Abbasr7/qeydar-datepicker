@@ -1,0 +1,31 @@
+@use '../../styles/variables' as *;
+
+.footer-description {
+  font-size: 13px;
+  color: $dp-color-text;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: end;
+  flex-direction: row-reverse;
+}
+
+.footer-button {
+  background: none;
+  border: none;
+  color: $dp-color-primary-button;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  transition: color 0.3s;
+
+  &.ok {
+    background: $dp-color-primary-button;
+    border-radius: 1px;
+    color: $dp-color-primary-contrast;
+  }
+}
+
+

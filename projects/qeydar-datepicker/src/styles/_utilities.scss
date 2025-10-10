@@ -1,0 +1,17 @@
+// Lightweight utility classes
+
+.u-hidden { display: none !important; }
+.u-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+.u-text-muted { color: $dp-color-muted; }
+.u-text-center { text-align: center; }
+.u-w-100 { width: 100%; }
+.u-h-100 { height: 100%; }
+
+

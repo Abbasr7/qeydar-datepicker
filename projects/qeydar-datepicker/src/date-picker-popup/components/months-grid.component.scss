@@ -1,0 +1,25 @@
+@import '../../styles/variables';
+
+%grid-shared {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  
+  button {
+    padding: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    position: relative;
+
+    &.selected {
+      background-color: $dp-color-primary;
+      color: $dp-color-primary-text;
+    }
+  }
+}
+
+.months {
+  @extend %grid-shared;
+  gap: 1rem .3rem;
+}

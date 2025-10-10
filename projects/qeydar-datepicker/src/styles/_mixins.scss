@@ -1,0 +1,38 @@
+// Common mixins used across datepicker components
+
+@mixin focus-ring($color: $dp-color-primary) {
+  outline: 2px solid $color;
+  outline-offset: 2px;
+}
+
+@mixin button-reset {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+@mixin flex-center($gap: 0) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $gap;
+}
+
+@mixin scroll-y() {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+%nav-icon-shared {
+  position: relative;
+  content: "";
+  display: inline-block;
+  height: 6px;
+  width: 6px;
+  vertical-align: baseline;
+  border-style: solid;
+  border-color: var(--dp-color-text);
+  border-width: 2px 2px 0 0;
+}
