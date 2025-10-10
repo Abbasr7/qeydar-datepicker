@@ -1,8 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList, ViewEncapsulation } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList, ViewEncapsulation, Inject } from '@angular/core';
 import { DateAdapter, GregorianDateAdapter, JalaliDateAdapter } from '../date-adapter';
 import { CustomLabels, DateRange, Lang_Locale, YearRange } from '../utils/models';
 import { DestroyService, QeydarDatePickerService } from '../date-picker.service';
-import { CalendarType, DatepickerMode } from '../utils/types';
+import { DatepickerMode } from '../utils/types';
 import { TimePickerComponent } from '../time-picker/time-picker.component';
 import { takeUntil } from 'rxjs';
 import { NgIf } from '@angular/common';
@@ -151,7 +151,6 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Input() mode: DatepickerMode = 'day';
   @Input() isRange = false;
   @Input() customLabels: Array<CustomLabels> = [];
-  @Input() calendarType: CalendarType = 'gregorian';
   @Input() minDate: Date | null = null;
   @Input() maxDate: Date | null = null;
   @Input() cssClass = '';
@@ -167,6 +166,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Input() disabledDatesFilter: (date: Date) => boolean;
   @Input() disabledTimesFilter: (date: Date) => boolean;
   @Input() templates: QueryList<CustomTemplate>;
+  @Input() dateAdapter: DateAdapter<Date>;
 
   // ========== Output Properties ==========
   @Output() dateSelected = new EventEmitter<Date>();
@@ -179,7 +179,6 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @ViewChild(TimePickerComponent) timePicker: TimePickerComponent;
 
   // ========== Class Properties ==========
-  dateAdapter: DateAdapter<Date>;
   weekDays: string[] = [];
   periods: Array<CustomLabels> = [];
   days: Date[] = [];
@@ -214,7 +213,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     public destroy$: DestroyService,
     private calendarUtils: CalendarUtilsService,
     private validationStrategy: ValidationStrategyService,
-    private selectionStrategy: SelectionStrategyService
+    private selectionStrategy: SelectionStrategyService,
   ) {
     cdr.markForCheck();
   }
@@ -285,7 +284,6 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   // ========== Date Adapter Methods ==========
   setDateAdapter(): void {
-    this.dateAdapter = this.calendarType === 'jalali' ? this.jalali : this.gregorian;
     this.lang = this.dpService.locale;
   }
 
@@ -710,24 +708,14 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   // ========== Year Management Methods ==========
   generateYearRanges(length: number = 15): void {
-    this.yearRanges = this.calendarUtils.generateYearRanges(length);
+    this.yearRanges = this.calendarUtils.generateYearRanges(length, this.dateAdapter);
   }
 
   generateYearList(length: number = 15): void {
     const date = this.selectedDate || this.selectedEndDate || this.selectedStartDate || new Date();
     const currentYear = this.dateAdapter.getYear(date);
     
-    let start: number;
-    if (this.viewMode === 'years') {
-      const currentRange = this.yearRanges.find(range => 
-        range.start <= currentYear && range.end >= currentYear
-      );
-      start = currentRange ? currentRange.start : currentYear;
-    } else {
-      start = this.dateAdapter.getYear(date) - Math.round(length / 2);
-    }
-    
-    this.yearList = this.calendarUtils.generateYearList(start, length);
+    this.yearList = this.calendarUtils.generateYearList(currentYear, length);
   }
 
   selectYearRange(startYear: number): void {
@@ -739,7 +727,13 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   // ========== Period Selection Methods ==========
   isActivePeriod(period: CustomLabels): boolean {
-    return this.selectionStrategy.isActivePeriod(period, this.selectedStartDate, this.selectedEndDate, this.dateAdapter);
+    return this.selectionStrategy.isActivePeriod(
+      period,
+      this.selectedStartDate,
+      this.selectedEndDate,
+      this.dateAdapter,
+      this.periods
+    );
   }
 
   selectPeriod(period: CustomLabels): void {
@@ -753,6 +747,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   onTodayClick() {
     this.currentDate = this.selectedDate = new Date();
+    this.viewMode = 'days';
     this.generateCalendar();
     this.selectDate(this.currentDate);
     this.setTimePickerDate(this.currentDate);
@@ -796,7 +791,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   // ========== State Management ==========
   handleChanges(changes: SimpleChanges): void {
-    if (changes['calendarType']) {
+    if (changes['dateAdapter']) {
       this.setDateAdapter();
       this.weekDays = this.dateAdapter.getDayOfWeekNames('short');
     }
@@ -805,7 +800,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
         changes['selectedStartDate'] || 
         changes['selectedEndDate'] || 
         changes['mode'] || 
-        changes['calendarType']) {
+        changes['dateAdapter']) {
       this.setInitialDate();
       this.generateCalendar();
     }
