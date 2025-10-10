@@ -1,398 +1,573 @@
 <div class="main-section">
-    <div [@slideInOut]="isSidebarOpen ? 'in' : 'out'" [class.closed]="!isSidebarOpen" class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <h2>Qeydar Date picker</h2>
-            <ul>
-                <li (click)="showPart = 'datepicker'">Date picker</li>
-                <li (click)="showPart = 'timepicker'">Time Picker</li>
-                <li><a href="https://www.npmjs.com/package/@qeydar/datepicker" target="_blank">About ({{ Version }})</a></li>
-                <li><a href="https://github.com/Abbasr7/qeydar-datepicker" target="_blank">Github</a></li>
-            </ul>
-        </div>
+  <div
+    [@slideInOut]="isSidebarOpen ? 'in' : 'out'"
+    [class.closed]="!isSidebarOpen"
+    class="sidebar"
+    id="sidebar"
+  >
+    <div class="sidebar-content">
+      <h2>Qeydar Date picker</h2>
+      <ul>
+        <li (click)="showPart = 'datepicker'">Date picker</li>
+        <li (click)="showPart = 'timepicker'">Time Picker</li>
+        <li (click)="showPart = 'hijri'">Hijri Calendar</li>
+        <li>
+          <a
+            href="https://www.npmjs.com/package/@qeydar/datepicker"
+            target="_blank"
+            >About ({{ Version }})</a
+          >
+        </li>
+        <li>
+          <a href="https://github.com/Abbasr7/qeydar-datepicker" target="_blank"
+            >Github</a
+          >
+        </li>
+      </ul>
     </div>
-    <div class="content">
-        <header class="header">
-            <button (click)="toggleSidebar()" class="toggle-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                    <g data-name="Layer 2">
-                        <g data-name="menu">
-                            <rect width="18" height="2" x="3" y="11" rx=".95" ry=".95" />
-                            <rect width="18" height="2" x="3" y="16" rx=".95" ry=".95" />
-                            <rect width="18" height="2" x="3" y="6" rx=".95" ry=".95" />
-                        </g>
-                    </g>
-                </svg>
-            </button>
-        </header>
-        <div class="demo-part">
-            <!-- Date Picker -->
-            <div class="container" *ngIf="showPart == 'datepicker'">
-                <div class="box">
-                    <h2>Set Settings:</h2>
-                    <p>you can change date picker settings and see result.</p>
-                    <div class="filters">
-                        <div class="form-group">
-                            <label for="cal-type">Calendar type:</label>
-                            <select name="cal-type" id="cal-type" [(ngModel)]="calendarType" (change)="onChangeCalendarType($event)">
-                                <option value="jalali">jalali</option>
-                                <option value="gregorian">gregorian</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="mode">Mode:</label>
-                            <select name="mode" id="mode" (change)="onChangeMode($event)">
-                                <option value="day">day</option>
-                                <option value="month">month</option>
-                                <option value="year">year</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="valueFormat">Value format:</label>
-                            <select name="valueFormat" id="valueFormat" [(ngModel)]="valueFormat" (change)="updateCode()">
-                                <option value="jalali">jalali</option>
-                                <option value="gregorian">gregorian</option>
-                                <option value="date">date</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="Rtl">Rtl:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" (ngModelChange)="updateCode()" [(ngModel)]="rtl"
-                                    class="switch-checkbox" id="Rtl" />
-                                <label class="switch-label" for="Rtl">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="isRange">isRange:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" (ngModelChange)="updateCode()" [(ngModel)]="isRange"
-                                    class="switch-checkbox" id="isRange" />
-                                <label class="switch-label" for="isRange">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="format">Format:</label>
-                            <input id="format" type="text" class="input-text" [(ngModel)]="format"
-                                (ngModelChange)="updateCode()">
-                        </div>
-                        <div class="form-group">
-                            <label for="footerDescription">Footer description:</label>
-                            <input id="footerDescription" type="text" class="input-text" [(ngModel)]="footerDescription"
-                                (ngModelChange)="updateCode()">
-                        </div>
-                        <div class="form-group" *ngIf="!isRange">
-                            <label for="inputLabel">Input label:</label>
-                            <input id="inputLabel" type="text" class="input-text" [(ngModel)]="inputLabel"
-                                (ngModelChange)="updateCode()">
-                        </div>
-                        <div class="range-labels" *ngIf="isRange">
-                            <div class="form-group">
-                                <label for="rangeInputLabel">start label:</label>
-                                <input id="rangeInputLabel" type="text" class="input-text"
-                                    [(ngModel)]="rangeInputLabel.start" (ngModelChange)="updateCode()">
-                            </div>
-                            <div class="form-group">
-                                <label for="rangeInputLabel">end label:</label>
-                                <input id="rangeInputLabel" type="text" class="input-text"
-                                    [(ngModel)]="rangeInputLabel.end" (ngModelChange)="updateCode()">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="MinDate">Min Date:</label>
-                            <qeydar-date-picker
-                                [dir]="rtl? 'rtl': 'ltr'"
-                                [rtl]="rtl"
-                                [calendarType]="calendarType"
-                                [format]="'yyyy/MM/dd'"
-                                [(ngModel)]="minDate"
-                                [mode]="'day'"
-                                [showSidebar]="showSidebar"
-                                [valueFormat]="valueFormat"
-                                (ngModelChange)="updateCode()"
-                            ></qeydar-date-picker>
-                        </div>
-                        <div class="form-group">
-                            <label for="MaxDate">Max Date:</label>
-                            <qeydar-date-picker
-                                [dir]="rtl?'rtl':'ltr'"
-                                [rtl]="rtl"
-                                [calendarType]="calendarType"
-                                [format]="'yyyy/MM/dd'"
-                                [(ngModel)]="maxDate"
-                                [mode]="'day'"
-                                [showSidebar]="showSidebar"
-                                [valueFormat]="valueFormat"
-                                (ngModelChange)="updateCode()"
-                            ></qeydar-date-picker>
-                        </div>
-                        <div class="filters">
-                            <div class="form-group">
-                                <label for="isInline">Inline mode:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="isInline" (change)="updateCode()"
-                                        class="switch-checkbox" id="isInline" />
-                                    <label class="switch-label" for="isInline">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="ShowSidebar">Show sidebar:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="showSidebar" (change)="updateCode()"
-                                        class="switch-checkbox" id="ShowSidebar" />
-                                    <label class="switch-label" for="ShowSidebar">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="showToday">Show today:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="showToday" (change)="updateCode()"
-                                        class="switch-checkbox" id="showToday" />
-                                    <label class="switch-label" for="showToday">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="Disabled">Disabled:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="disabled" (change)="updateCode()"
-                                        class="switch-checkbox" id="Disabled" />
-                                    <label class="switch-label" for="Disabled">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="allowEmpty">Allow empty:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="allowEmpty" (change)="updateCode()"
-                                        class="switch-checkbox" id="allowEmpty" />
-                                    <label class="switch-label" for="allowEmpty">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="readOnly">readOnly:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="readOnly" (change)="updateCode()"
-                                        class="switch-checkbox" id="readOnly" />
-                                    <label class="switch-label" for="readOnly">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="readOnlyInput">readOnlyInput:</label>
-                                <div class="switch-container">
-                                    <input type="checkbox" [(ngModel)]="readOnlyInput" (change)="updateCode()"
-                                        class="switch-checkbox" id="readOnlyInput" />
-                                    <label class="switch-label" for="readOnlyInput">
-                                        <span class="switch-button"></span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  </div>
+  <div class="content">
+    <header class="header">
+      <button (click)="toggleSidebar()" class="toggle-button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <g data-name="Layer 2">
+            <g data-name="menu">
+              <rect width="18" height="2" x="3" y="11" rx=".95" ry=".95" />
+              <rect width="18" height="2" x="3" y="16" rx=".95" ry=".95" />
+              <rect width="18" height="2" x="3" y="6" rx=".95" ry=".95" />
+            </g>
+          </g>
+        </svg>
+      </button>
+    </header>
+    <div class="demo-part">
+      <!-- Date Picker -->
+      <div class="container" *ngIf="showPart == 'datepicker'">
+        <div class="box">
+          <h2>Set Settings:</h2>
+          <p>you can change date picker settings and see result.</p>
+          <div class="filters">
+            <div class="form-group">
+              <label for="cal-type">Calendar type:</label>
+              <select
+                name="cal-type"
+                id="cal-type"
+                [(ngModel)]="calendarType"
+                (change)="onChangeCalendarType($event)"
+              >
+                <option value="jalali">jalali</option>
+                <option value="gregorian">gregorian</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mode">Mode:</label>
+              <select name="mode" id="mode" (change)="onChangeMode($event)">
+                <option value="day">day</option>
+                <option value="month">month</option>
+                <option value="year">year</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="valueFormat">Value format:</label>
+              <select
+                name="valueFormat"
+                id="valueFormat"
+                [(ngModel)]="valueFormat"
+                (change)="updateCode()"
+              >
+                <option value="jalali">jalali</option>
+                <option value="gregorian">gregorian</option>
+                <option value="date">date</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="Rtl">Rtl:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  (ngModelChange)="updateCode()"
+                  [(ngModel)]="rtl"
+                  class="switch-checkbox"
+                  id="Rtl"
+                />
+                <label class="switch-label" for="Rtl">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="isRange">isRange:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  (ngModelChange)="updateCode()"
+                  [(ngModel)]="isRange"
+                  class="switch-checkbox"
+                  id="isRange"
+                />
+                <label class="switch-label" for="isRange">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="format">Format:</label>
+              <input
+                id="format"
+                type="text"
+                class="input-text"
+                [(ngModel)]="format"
+                (ngModelChange)="updateCode()"
+              />
+            </div>
+            <div class="form-group">
+              <label for="footerDescription">Footer description:</label>
+              <input
+                id="footerDescription"
+                type="text"
+                class="input-text"
+                [(ngModel)]="footerDescription"
+                (ngModelChange)="updateCode()"
+              />
+            </div>
+            <div class="form-group" *ngIf="!isRange">
+              <label for="inputLabel">Input label:</label>
+              <input
+                id="inputLabel"
+                type="text"
+                class="input-text"
+                [(ngModel)]="inputLabel"
+                (ngModelChange)="updateCode()"
+              />
+            </div>
+            <div class="range-labels" *ngIf="isRange">
+              <div class="form-group">
+                <label for="rangeInputLabel">start label:</label>
+                <input
+                  id="rangeInputLabel"
+                  type="text"
+                  class="input-text"
+                  [(ngModel)]="rangeInputLabel.start"
+                  (ngModelChange)="updateCode()"
+                />
+              </div>
+              <div class="form-group">
+                <label for="rangeInputLabel">end label:</label>
+                <input
+                  id="rangeInputLabel"
+                  type="text"
+                  class="input-text"
+                  [(ngModel)]="rangeInputLabel.end"
+                  (ngModelChange)="updateCode()"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="MinDate">Min Date:</label>
+              <qeydar-date-picker
+                [dir]="rtl ? 'rtl' : 'ltr'"
+                [rtl]="rtl"
+                [calendarType]="calendarType"
+                [format]="'yyyy/MM/dd'"
+                [(ngModel)]="minDate"
+                [mode]="'day'"
+                [showSidebar]="showSidebar"
+                [valueFormat]="valueFormat"
+                (ngModelChange)="updateCode()"
+              ></qeydar-date-picker>
+            </div>
+            <div class="form-group">
+              <label for="MaxDate">Max Date:</label>
+              <qeydar-date-picker
+                [dir]="rtl ? 'rtl' : 'ltr'"
+                [rtl]="rtl"
+                [calendarType]="calendarType"
+                [format]="'yyyy/MM/dd'"
+                [(ngModel)]="maxDate"
+                [mode]="'day'"
+                [showSidebar]="showSidebar"
+                [valueFormat]="valueFormat"
+                (ngModelChange)="updateCode()"
+              ></qeydar-date-picker>
+            </div>
+            <div class="filters">
+              <div class="form-group">
+                <label for="isInline">Inline mode:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="isInline"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="isInline"
+                  />
+                  <label class="switch-label" for="isInline">
+                    <span class="switch-button"></span>
+                  </label>
                 </div>
-                <div class="box" [dir]="rtl? 'rtl': 'ltr'">
-                    <h2>Settings Result</h2>
-                    <p>Display the demo based on the settings</p>
-                    <div class="demo">
-                        <qeydar-date-picker
-                            [rtl]="rtl"
-                            [calendarType]="calendarType"
-                            [format]="format"
-                            [footerDescription]="footerDescription"
-                            [inputLabel]="inputLabel"
-                            [rangeInputLabels]="rangeInputLabel"
-                            [showSidebar]="showSidebar"
-                            [disabled]="disabled"
-                            [valueFormat]="valueFormat"
-                            [isRange]="isRange"
-                            [showToday]="showToday"
-                            [maxDate]="maxDate"
-                            [minDate]="minDate"
-                            [mode]="mode"
-                            [isInline]="isInline"
-                            [allowEmpty]="allowEmpty"
-                            [readOnly]="readOnly"
-                            [readOnlyInput]="readOnlyInput"
-                            [(ngModel)]="selectedDate"
-                            (ngModelChange)="onChange($event)"
-                        >
-                        </qeydar-date-picker>
-                        <code style="margin-top: 10px;display: block;">selectedDate:  {{ selectedDate | json }}</code>
-                    </div>
-                    <button class="toggle-btn" (click)="toggleCode(code)">show code</button>
-                    <div id="code" class="code" #code>
-                        <code>
-                            {{ demoCode }}
-                        </code>
-                    </div>
+              </div>
+              <div class="form-group">
+                <label for="ShowSidebar">Show sidebar:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="showSidebar"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="ShowSidebar"
+                  />
+                  <label class="switch-label" for="ShowSidebar">
+                    <span class="switch-button"></span>
+                  </label>
                 </div>
-                <div class="box">
-                    <h2>Disabled Dates Examples</h2>
-                    <p>This guide provides various examples of how to use the disabled dates functionality in the Qeydar Date Picker.</p>
-                    <div class="demo">
-                        <disabled-dates></disabled-dates>
-                    </div>
+              </div>
+              <div class="form-group">
+                <label for="showToday">Show today:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="showToday"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="showToday"
+                  />
+                  <label class="switch-label" for="showToday">
+                    <span class="switch-button"></span>
+                  </label>
                 </div>
-                <div class="box">
-                    <h2>Custom Templates</h2>
-                    <p>The DatePicker supports custom templates for days, months, and years using the <code>Template</code> directive.</p>
-                    <div class="demo">
-                        <custom-render></custom-render>
-                    </div>
+              </div>
+              <div class="form-group">
+                <label for="Disabled">Disabled:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="disabled"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="Disabled"
+                  />
+                  <label class="switch-label" for="Disabled">
+                    <span class="switch-button"></span>
+                  </label>
                 </div>
+              </div>
+              <div class="form-group">
+                <label for="allowEmpty">Allow empty:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="allowEmpty"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="allowEmpty"
+                  />
+                  <label class="switch-label" for="allowEmpty">
+                    <span class="switch-button"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="readOnly">readOnly:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="readOnly"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="readOnly"
+                  />
+                  <label class="switch-label" for="readOnly">
+                    <span class="switch-button"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="readOnlyInput">readOnlyInput:</label>
+                <div class="switch-container">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="readOnlyInput"
+                    (change)="updateCode()"
+                    class="switch-checkbox"
+                    id="readOnlyInput"
+                  />
+                  <label class="switch-label" for="readOnlyInput">
+                    <span class="switch-button"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="box" [dir]="rtl ? 'rtl' : 'ltr'">
+          <h2>Settings Result</h2>
+          <p>Display the demo based on the settings</p>
+          <div class="demo">
+            <qeydar-date-picker
+              [rtl]="rtl"
+              [calendarType]="calendarType"
+              [format]="format"
+              [footerDescription]="footerDescription"
+              [inputLabel]="inputLabel"
+              [rangeInputLabels]="rangeInputLabel"
+              [showSidebar]="showSidebar"
+              [disabled]="disabled"
+              [valueFormat]="valueFormat"
+              [isRange]="isRange"
+              [showToday]="showToday"
+              [maxDate]="maxDate"
+              [minDate]="minDate"
+              [mode]="mode"
+              [isInline]="isInline"
+              [allowEmpty]="allowEmpty"
+              [readOnly]="readOnly"
+              [readOnlyInput]="readOnlyInput"
+              [(ngModel)]="selectedDate"
+              (ngModelChange)="onChange($event)"
+            >
+            </qeydar-date-picker>
+            <code style="margin-top: 10px; display: block"
+              >selectedDate: {{ selectedDate | json }}</code
+            >
+          </div>
+          <button class="toggle-btn" (click)="toggleCode(code)">
+            show code
+          </button>
+          <div id="code" class="code" #code>
+            <code>
+              {{ demoCode }}
+            </code>
+          </div>
+        </div>
+        <div class="box">
+          <h2>Disabled Dates Examples</h2>
+          <p>
+            This guide provides various examples of how to use the disabled
+            dates functionality in the Qeydar Date Picker.
+          </p>
+          <div class="demo">
+            <disabled-dates></disabled-dates>
+          </div>
+        </div>
+        <div class="box">
+          <h2>Custom Templates</h2>
+          <p>
+            The DatePicker supports custom templates for days, months, and years
+            using the <code>Template</code> directive.
+          </p>
+          <div class="demo">
+            <custom-render></custom-render>
+          </div>
+        </div>
+        <!-- مثال تقویم هجری با اداپتور مستقیم -->
+        <div class="box">
+          <div class="demo">
+            <hijri-demo></hijri-demo>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time Picker -->
+      <div class="container" *ngIf="showPart == 'timepicker'">
+        <div class="box">
+          <h2>Set Settings:</h2>
+          <p>you can change time picker settings and see result.</p>
+          <div class="filters">
+            <div class="form-group">
+              <label for="val-type">Value type:</label>
+              <select
+                name="val-type"
+                id="cal-type"
+                [(ngModel)]="timeValueType"
+                (change)="updateCode()"
+              >
+                <option value="string">string</option>
+                <option value="date">date</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="Rtl">Rtl:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  (ngModelChange)="updateCode()"
+                  [(ngModel)]="rtl"
+                  class="switch-checkbox"
+                  id="Rtl"
+                />
+                <label class="switch-label" for="Rtl">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="showIcon">Show icon:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  (ngModelChange)="updateCode()"
+                  [(ngModel)]="showIcon"
+                  class="switch-checkbox"
+                  id="showIcon"
+                />
+                <label class="switch-label" for="showIcon">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="format">Display format:</label>
+              <input
+                id="format"
+                type="text"
+                class="input-text"
+                [(ngModel)]="timeDisplayFormat"
+                (ngModelChange)="updateCode()"
+              />
             </div>
 
-            <!-- Time Picker -->
-            <div class="container" *ngIf="showPart == 'timepicker'">
-                <div class="box">
-                    <h2>Set Settings:</h2>
-                    <p>you can change time picker settings and see result.</p>
-                    <div class="filters">
-                        <div class="form-group">
-                            <label for="val-type">Value type:</label>
-                            <select name="val-type" id="cal-type" [(ngModel)]="timeValueType" (change)="updateCode()">
-                                <option value="string">string</option>
-                                <option value="date">date</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="Rtl">Rtl:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" (ngModelChange)="updateCode()" [(ngModel)]="rtl"
-                                    class="switch-checkbox" id="Rtl" />
-                                <label class="switch-label" for="Rtl">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="showIcon">Show icon:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" (ngModelChange)="updateCode()" [(ngModel)]="showIcon"
-                                    class="switch-checkbox" id="showIcon" />
-                                <label class="switch-label" for="showIcon">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="format">Display format:</label>
-                            <input id="format" type="text" class="input-text" [(ngModel)]="timeDisplayFormat"
-                                (ngModelChange)="updateCode()">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="MinDate">Min time:</label>
-                            <qeydar-time-picker [displayFormat]="timeDisplayFormat"
-                                [(ngModel)]="minTime" (ngModelChange)="onChange($event)"></qeydar-time-picker>
-                        </div>
-                        <div class="form-group">
-                            <label for="MaxDate">Max time:</label>
-                            <qeydar-time-picker [displayFormat]="timeDisplayFormat"
-                                [(ngModel)]="maxTime" (ngModelChange)="onChange($event)"></qeydar-time-picker>
-                        </div>
-                        <div class="form-group">
-                            <label for="isInline">Inline mode:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" (ngModelChange)="updateCode()" [(ngModel)]="isInline"
-                                    class="switch-checkbox" id="isInline" />
-                                <label class="switch-label" for="isInline">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="Disabled">Disabled:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" [(ngModel)]="disabled" (change)="updateCode()"
-                                    class="switch-checkbox" id="Disabled" />
-                                <label class="switch-label" for="Disabled">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="allowEmpty">Allow empty:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" [(ngModel)]="allowEmpty" (change)="updateCode()"
-                                    class="switch-checkbox" id="allowEmpty" />
-                                <label class="switch-label" for="allowEmpty">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="readOnly">readOnly:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" [(ngModel)]="readOnly" (change)="updateCode()"
-                                    class="switch-checkbox" id="readOnly" />
-                                <label class="switch-label" for="readOnly">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="readOnlyInput">readOnlyInput:</label>
-                            <div class="switch-container">
-                                <input type="checkbox" [(ngModel)]="readOnlyInput" (change)="updateCode()"
-                                    class="switch-checkbox" id="readOnlyInput" />
-                                <label class="switch-label" for="readOnlyInput">
-                                    <span class="switch-button"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="box" [dir]="rtl? 'rtl': 'ltr'">
-                    <h2>Settings Result</h2>
-                    <p>Display the demo based on the settings</p>
-                    <div class="demo">
-                        <qeydar-time-picker
-                            [rtl]="rtl"
-                            [showIcon]="showIcon"
-                            [displayFormat]="timeDisplayFormat"
-                            [valueType]="timeValueType"
-                            [minTime]="minTime"
-                            [maxTime]="maxTime"
-                            [inline]="isInline"
-                            [disabled]="disabled"
-                            [readOnly]="readOnly"
-                            [readOnlyInput]="readOnlyInput"
-                            [(ngModel)]="selectedTime"
-                            (ngModelChange)="onChange($event)"
-                        >
-                        </qeydar-time-picker>
-                        <code style="margin-top: 10px;display: block;">selectedDate:  {{ selectedTime | json }}</code>
-                    </div>
-                    <button class="toggle-btn" (click)="toggleCode(code)">show code</button>
-                    <div id="code" class="code" #code>
-                        <code>
-                            {{ demoCode }}
-                        </code>
-                    </div>
-                </div>
-
-                <div class="box">
-                    <h2>Disabled Times Examples</h2>
-                    <p>This guide provides various examples of how to use the disabled times functionality in the Qeydar time Picker.</p>
-                    <div class="demo">
-                        <disabled-times></disabled-times>
-                    </div>
-                </div>
+            <div class="form-group">
+              <label for="MinDate">Min time:</label>
+              <qeydar-time-picker
+                [displayFormat]="timeDisplayFormat"
+                [(ngModel)]="minTime"
+                (ngModelChange)="onChange($event)"
+              ></qeydar-time-picker>
             </div>
+            <div class="form-group">
+              <label for="MaxDate">Max time:</label>
+              <qeydar-time-picker
+                [displayFormat]="timeDisplayFormat"
+                [(ngModel)]="maxTime"
+                (ngModelChange)="onChange($event)"
+              ></qeydar-time-picker>
+            </div>
+            <div class="form-group">
+              <label for="isInline">Inline mode:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  (ngModelChange)="updateCode()"
+                  [(ngModel)]="isInline"
+                  class="switch-checkbox"
+                  id="isInline"
+                />
+                <label class="switch-label" for="isInline">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="Disabled">Disabled:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="disabled"
+                  (change)="updateCode()"
+                  class="switch-checkbox"
+                  id="Disabled"
+                />
+                <label class="switch-label" for="Disabled">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="allowEmpty">Allow empty:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="allowEmpty"
+                  (change)="updateCode()"
+                  class="switch-checkbox"
+                  id="allowEmpty"
+                />
+                <label class="switch-label" for="allowEmpty">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="readOnly">readOnly:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="readOnly"
+                  (change)="updateCode()"
+                  class="switch-checkbox"
+                  id="readOnly"
+                />
+                <label class="switch-label" for="readOnly">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="readOnlyInput">readOnlyInput:</label>
+              <div class="switch-container">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="readOnlyInput"
+                  (change)="updateCode()"
+                  class="switch-checkbox"
+                  id="readOnlyInput"
+                />
+                <label class="switch-label" for="readOnlyInput">
+                  <span class="switch-button"></span>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
+        <div class="box" [dir]="rtl ? 'rtl' : 'ltr'">
+          <h2>Settings Result</h2>
+          <p>Display the demo based on the settings</p>
+          <div class="demo">
+            <qeydar-time-picker
+              [rtl]="rtl"
+              [showIcon]="showIcon"
+              [displayFormat]="timeDisplayFormat"
+              [valueType]="timeValueType"
+              [minTime]="minTime"
+              [maxTime]="maxTime"
+              [inline]="isInline"
+              [disabled]="disabled"
+              [readOnly]="readOnly"
+              [readOnlyInput]="readOnlyInput"
+              [(ngModel)]="selectedTime"
+              (ngModelChange)="onChange($event)"
+            >
+            </qeydar-time-picker>
+            <code style="margin-top: 10px; display: block"
+              >selectedDate: {{ selectedTime | json }}</code
+            >
+          </div>
+          <button class="toggle-btn" (click)="toggleCode(code)">
+            show code
+          </button>
+          <div id="code" class="code" #code>
+            <code>
+              {{ demoCode }}
+            </code>
+          </div>
+        </div>
+
+        <div class="box">
+          <h2>Disabled Times Examples</h2>
+          <p>
+            This guide provides various examples of how to use the disabled
+            times functionality in the Qeydar time Picker.
+          </p>
+          <div class="demo">
+            <disabled-times></disabled-times>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

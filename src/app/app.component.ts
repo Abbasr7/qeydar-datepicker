@@ -1,7 +1,7 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { CalendarType, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
+import { CalendarType, DATE_ADAPTER, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +24,7 @@ import { CalendarType, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, 
         animate('300ms ease-in-out')
       ]),
     ])
-  ]
+  ],
 })
 export class AppComponent implements OnInit{
   Version = '1.2.3';
@@ -216,5 +216,10 @@ export class AppComponent implements OnInit{
 
   onChange(event:any) {
     console.log('event:',event);
+  }
+
+  // هندلر برای تغییر تاریخ هجری
+  onChangeHijri(event: any) {
+    console.log('Hijri event:', event);
   }
 }

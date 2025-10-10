@@ -8,21 +8,25 @@ import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-da
 import { DisabledDates } from './demos/disabled/diabled-date';
 import { DisabledTimes } from './demos/disabled/diabled-time';
 import { CustomRender } from './demos/custom-render';
+import { HijriDemoComponent } from './demos/hijri-demo.component';
+import { BidiModule } from "@angular/cdk/bidi";
 
 @NgModule({
   declarations: [
     AppComponent,
     DisabledDates,
     DisabledTimes,
-    CustomRender
+    CustomRender,
+    HijriDemoComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     ReactiveFormsModule,
     BrowserAnimationsModule,
-    QeydarDatePickerModule
-  ],
+    QeydarDatePickerModule,
+    BidiModule
+],
   providers: [],
   bootstrap: [AppComponent]
 })
