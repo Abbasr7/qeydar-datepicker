@@ -43,7 +43,8 @@ import {
   isEqual,
   addMinutes
 } from 'date-fns';
-import { Injectable } from '@angular/core';
+import { Injectable, InjectionToken, Provider } from '@angular/core';
+import { CalendarType } from './utils/types';
 
 export interface DateAdapter<D> {
   today(): D;
@@ -85,6 +86,20 @@ export interface DateAdapter<D> {
   setSeconds(date: D, seconds: number): D;
   getDaysInMonth(date: D): number;
   addMinutes(date: D, amount: number): D;
+}
+
+// Injection token for date adapter
+export const DATE_ADAPTER = new InjectionToken<DateAdapter<Date>>('DateAdapter');
+
+// Provider factory for default adapters
+export function provideDateAdapter(calendarType: CalendarType): Provider {
+  return {
+    provide: DATE_ADAPTER,
+    useFactory: (jalali: JalaliDateAdapter, gregorian: GregorianDateAdapter) => {
+      return calendarType === 'jalali' ? jalali : gregorian;
+    },
+    deps: [JalaliDateAdapter, GregorianDateAdapter]
+  };
 }
 
 @Injectable({
