@@ -52,12 +52,14 @@ import { GregorianDateAdapter, JalaliDateAdapter } from 'projects/qeydar-datepic
         </article>
       </div>
 
-      <div class="child-code-disclosure">
-        <button type="button" class="child-code-toggle" (click)="showCode = !showCode" [attr.aria-expanded]="showCode" aria-controls="custom-render-code">
-          {{ showCode ? 'Hide' : 'Show' }} example code <span aria-hidden="true">↘</span>
-        </button>
-        <pre id="custom-render-code" class="child-code" [hidden]="!showCode"><code>{{ demoCode }}</code></pre>
-      </div>
+      <demo-code-viewer
+        [htmlCode]="htmlCode"
+        [tsCode]="tsCode"
+        [scssCode]="scssCode"
+        htmlFile="custom-render.component.html"
+        tsFile="custom-render.component.ts"
+        scssFile="custom-render.component.scss"
+      ></demo-code-viewer>
     </div>
   `,
   styles: [`
@@ -80,16 +82,11 @@ import { GregorianDateAdapter, JalaliDateAdapter } from 'projects/qeydar-datepic
     .month-cell small { margin-left: 4px; color: #4d68e9; font-size: 8px; }
     .month-cell--selected, .year-cell--selected { background: #4d68e9; color: #fff; }
     .year-cell--marked:not(.year-cell--selected) { border-bottom: 1px dashed #ef6e9b; }
-    .child-code-disclosure { margin-top: 16px; }
-    .child-code-toggle { padding: 0; border: 0; background: transparent; color: #344dc7; font-size: 11px; font-weight: 800; cursor: pointer; }
-    .child-code-toggle span { display: inline-block; margin-left: 5px; font-size: 14px; }
-    .child-code { max-height: 260px; margin: 12px 0 0; padding: 14px; overflow: auto; border-radius: 10px; background: #19243b; color: #d8e2ff; direction: ltr; font: 11px/1.65 'Courier New', monospace; white-space: pre; }
     @media (max-width: 800px) { .custom-demo-grid { grid-template-columns: 1fr; } p { min-height: 0; } }
   `]
 })
 export class CustomRender {
   selectedDate: Date | string = new Date();
-  showCode = false;
 
   constructor(private jalali: JalaliDateAdapter, private gregorian: GregorianDateAdapter) {}
 
@@ -98,13 +95,128 @@ export class CustomRender {
     return day === 14 || day === 16 || day === 18;
   }
 
-  demoCode = `<qeydar-date-picker [(ngModel)]="selectedDate">
-  <ng-template qeydarTemplate="day" let-dayNumber="dayNumber" let-isSelected="isSelected">
-    <span [class.selected-marker]="isSelected">{{ dayNumber }}</span>
+  htmlCode = `<qeydar-date-picker [(ngModel)]="selectedDate">
+  <ng-template
+    qeydarTemplate="day"
+    let-date
+    let-dayNumber="dayNumber"
+    let-isToday="isToday"
+    let-isSelected="isSelected"
+  >
+    <span
+      [class.meeting]="isMeeting(date)"
+      [class.today-marker]="isToday"
+      [class.selected-marker]="isSelected"
+    >{{ dayNumber }}</span>
   </ng-template>
 </qeydar-date-picker>
 
-<qeydar-date-picker [mode]="'month'">
-  <ng-template qeydarTemplate="month" let-name="name">{{ name }}</ng-template>
+<qeydar-date-picker [rtl]="true" [calendarType]="'jalali'" [(ngModel)]="selectedDate">
+  <ng-template
+    qeydarTemplate="day"
+    let-date
+    let-dayNumber="dayNumber"
+    let-isToday="isToday"
+    let-isSelected="isSelected"
+  >
+    <span
+      [class.meeting]="isMeeting(date)"
+      [class.today-marker]="isToday"
+      [class.selected-marker]="isSelected"
+    >{{ dayNumber }}</span>
+  </ng-template>
+</qeydar-date-picker>
+
+<qeydar-date-picker [(ngModel)]="selectedDate" [mode]="'month'">
+  <ng-template qeydarTemplate="month" let-name="name" let-isSelected="isSelected">
+    <div class="month-cell" [class.month-cell--selected]="isSelected">
+      {{ name }} <small *ngIf="isSelected">active</small>
+    </div>
+  </ng-template>
+</qeydar-date-picker>
+
+<qeydar-date-picker [(ngModel)]="selectedDate" [mode]="'year'">
+  <ng-template qeydarTemplate="year" let-year let-isSelected="isSelected">
+    <div
+      class="year-cell"
+      [class.year-cell--marked]="year % 2 === 0"
+      [class.year-cell--selected]="isSelected"
+    >{{ year }}</div>
+  </ng-template>
 </qeydar-date-picker>`;
+
+  tsCode = `import { Component } from '@angular/core';
+import { GregorianDateAdapter, JalaliDateAdapter } from '@qeydar/datepicker';
+
+@Component({
+  selector: 'app-custom-render',
+  templateUrl: './custom-render.component.html',
+})
+export class CustomRenderComponent {
+  selectedDate: Date | string = new Date();
+
+  constructor(
+    private jalali: JalaliDateAdapter,
+    private gregorian: GregorianDateAdapter
+  ) {}
+
+  isMeeting(date: Date): boolean {
+    const day = this.jalali.getDate(date);
+    return day === 14 || day === 16 || day === 18;
+  }
+}`;
+
+  scssCode = `.meeting {
+  position: relative;
+  color: #4468ef;
+}
+
+.meeting::after {
+  position: absolute;
+  right: 50%;
+  bottom: -3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ef6e9b;
+  content: '';
+  transform: translateX(50%);
+}
+
+.today-marker {
+  text-decoration: underline;
+  text-decoration-color: #ef6e9b;
+  text-underline-offset: 3px;
+}
+
+.selected-marker {
+  font-weight: 800;
+}
+
+.month-cell,
+.year-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.month-cell small {
+  margin-left: 4px;
+  color: #4d68e9;
+  font-size: 8px;
+}
+
+.month-cell--selected,
+.year-cell--selected {
+  background: #4d68e9;
+  color: #fff;
+}
+
+.year-cell--marked:not(.year-cell--selected) {
+  border-bottom: 1px dashed #ef6e9b;
+}`;
 }

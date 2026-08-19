@@ -7,7 +7,6 @@ import { DatepickerMode } from '../../utils/types';
   providedIn: 'root'
 })
 export class CalendarUtilsService {
-
   /**
    * Generate days grid for calendar view
    */

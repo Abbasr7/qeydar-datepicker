@@ -10,6 +10,7 @@ import { CustomRender } from './demos/custom-render';
 import { MaterialRender } from './demos/material-render';
 import { SlotDemosComponent } from './demos/slot-demos.component';
 import { HijriDemoComponent } from './demos/hijri-demo.component';
+import { DemoCodeViewerComponent } from './demos/code-viewer.component';
 import { BidiModule } from "@angular/cdk/bidi";
 // import { QeydarDatePickerModule } from '@qeydar/datepicker';
 import { AdvancedDatePicker, CustomDatePickerExample, MinimalDatePicker } from 'projects/qeydar-datepicker/src/components/examples/custom-date-picker.example';
@@ -24,6 +25,7 @@ import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-da
     MaterialRender,
     SlotDemosComponent,
     HijriDemoComponent,
+    DemoCodeViewerComponent,
   ],
   imports: [
     BrowserModule,

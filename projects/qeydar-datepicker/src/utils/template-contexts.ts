@@ -109,6 +109,9 @@ export interface BodyTemplateContext {
     goPrev(): void;
     goNext(): void;
   };
+  utils: {
+    generateYearList(length: number): number[]
+  }
 }
 
 /** Internal typed map used to resolve projected templates by slot name. */

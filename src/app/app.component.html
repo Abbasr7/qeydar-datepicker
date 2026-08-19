@@ -467,23 +467,12 @@
               <span>Selected value</span>
               <strong>{{ selectedDate | json }}</strong>
             </output>
-            <div class="code-disclosure">
-              <button
-                type="button"
-                class="code-toggle"
-                (click)="toggleDateCode()"
-                [attr.aria-expanded]="dateCodeOpen"
-                aria-controls="date-picker-code"
-              >
-                <span>{{ dateCodeOpen ? "Hide" : "Show" }} code</span
-                ><span class="toggle-arrow" aria-hidden="true">↘</span>
-              </button>
-              <pre
-                id="date-picker-code"
-                class="code-block"
-                [hidden]="!dateCodeOpen"
-              ><code>{{ demoCode }}</code></pre>
-            </div>
+            <demo-code-viewer
+              [htmlCode]="demoHtmlCode"
+              [tsCode]="demoTsCode"
+              htmlFile="date-example.component.html"
+              tsFile="date-example.component.ts"
+            ></demo-code-viewer>
           </section>
         </div>
 
@@ -760,23 +749,12 @@
               ><span>Selected value</span
               ><strong>{{ selectedTime | json }}</strong></output
             >
-            <div class="code-disclosure">
-              <button
-                type="button"
-                class="code-toggle"
-                (click)="toggleTimeCode()"
-                [attr.aria-expanded]="timeCodeOpen"
-                aria-controls="time-picker-code"
-              >
-                <span>{{ timeCodeOpen ? "Hide" : "Show" }} code</span
-                ><span class="toggle-arrow" aria-hidden="true">↘</span>
-              </button>
-              <pre
-                id="time-picker-code"
-                class="code-block"
-                [hidden]="!timeCodeOpen"
-              ><code>{{ demoCode }}</code></pre>
-            </div>
+            <demo-code-viewer
+              [htmlCode]="demoHtmlCode"
+              [tsCode]="demoTsCode"
+              htmlFile="time-example.component.html"
+              tsFile="time-example.component.ts"
+            ></demo-code-viewer>
           </section>
         </div>
         <div class="section-heading">

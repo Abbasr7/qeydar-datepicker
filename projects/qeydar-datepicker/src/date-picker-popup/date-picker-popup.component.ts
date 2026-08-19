@@ -357,7 +357,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       currentDate: this.currentDate || new Date(),
       days: this.days,
       monthListNum: this.monthListNum,
-      yearList: this.yearList,
+      yearList: this.generateYearList(120),
       weekDays: this.getWeekDays(),
       selection: {
         isSelected: this.isSelectedFn,
@@ -377,6 +377,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
         selectYear: this.selectYearFn,
         goPrev: this.goPrevFn,
         goNext: this.goNextFn
+      },
+      utils: {
+        generateYearList: this.generateYearList.bind(this)
       }
     };
   }
@@ -1015,7 +1018,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     this.yearRanges = this.calendarUtils.generateYearRanges(length, this.dateAdapter, this.currentDate);
   }
 
-  generateYearList(length: number = 15): void {
+  generateYearList(length: number = 15): number[] {
     // In range mode, prioritize start date to show the beginning of the range
     let date: Date;
     if (this.isRange && this.selectedStartDate) {
@@ -1026,6 +1029,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     const currentYear = this.dateAdapter.getYear(date);
     
     this.yearList = this.calendarUtils.generateYearList(currentYear, length);
+    return this.yearList
   }
 
   selectYearRange(startYear: number): void {

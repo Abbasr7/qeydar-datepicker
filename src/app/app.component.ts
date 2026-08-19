@@ -55,9 +55,8 @@ export class AppComponent implements OnInit {
   readOnly = false;
   readOnlyInput = false;
 
-  dateCodeOpen = false;
-  timeCodeOpen = false;
-  demoCode = '';
+  demoHtmlCode = '';
+  demoTsCode = '';
 
   constructor(
     private jalali: JalaliDateAdapter,
@@ -81,20 +80,6 @@ export class AppComponent implements OnInit {
     this.updateCode();
   }
 
-  toggleDateCode(): void {
-    this.dateCodeOpen = !this.dateCodeOpen;
-    if (this.dateCodeOpen) {
-      this.updateDateCode();
-    }
-  }
-
-  toggleTimeCode(): void {
-    this.timeCodeOpen = !this.timeCodeOpen;
-    if (this.timeCodeOpen) {
-      this.updateTimeCode();
-    }
-  }
-
   onChangeCalendarType(event: Event): void {
     this.calendarType = (event.target as HTMLSelectElement).value as CalendarType;
     this.updateCode();
@@ -114,7 +99,7 @@ export class AppComponent implements OnInit {
   }
 
   updateDateCode(): void {
-    this.demoCode = `<qeydar-date-picker
+    this.demoHtmlCode = `<qeydar-date-picker
   [rtl]="rtl"
   [calendarType]="calendarType"
   [mode]="mode"
@@ -129,28 +114,36 @@ export class AppComponent implements OnInit {
   [readOnly]="readOnly"
   [readOnlyInput]="readOnlyInput"
   [(ngModel)]="selectedDate"
-></qeydar-date-picker>
+></qeydar-date-picker>`;
 
-selectedDate: {{ this.toCodeValue(this.selectedDate) }}
+    this.demoTsCode = `import { Component } from '@angular/core';
+import { CalendarType, DatepickerMode, ValueFormat } from '@qeydar/datepicker';
 
-// Current settings
-rtl = ${this.rtl};
-calendarType: CalendarType = '${this.calendarType}';
-mode: DatepickerMode = '${this.mode}';
-format = '${this.escapeCode(this.format)}';
-valueFormat: ValueFormat = '${this.valueFormat}';
-isRange = ${this.isRange};
-showToday = ${this.showToday};
-showSidebar = ${this.showSidebar};
-isInline = ${this.isInline};
-allowEmpty = ${this.allowEmpty};
-disabled = ${this.disabled};
-readOnly = ${this.readOnly};
-readOnlyInput = ${this.readOnlyInput};`;
+@Component({
+  selector: 'app-date-example',
+  templateUrl: './date-example.component.html',
+})
+export class DateExampleComponent {
+  selectedDate = ${this.toCodeValue(this.selectedDate)};
+
+  rtl = ${this.rtl};
+  calendarType: CalendarType = '${this.calendarType}';
+  mode: DatepickerMode = '${this.mode}';
+  format = '${this.escapeCode(this.format)}';
+  valueFormat: ValueFormat = '${this.valueFormat}';
+  isRange = ${this.isRange};
+  showToday = ${this.showToday};
+  showSidebar = ${this.showSidebar};
+  isInline = ${this.isInline};
+  allowEmpty = ${this.allowEmpty};
+  disabled = ${this.disabled};
+  readOnly = ${this.readOnly};
+  readOnlyInput = ${this.readOnlyInput};
+}`;
   }
 
   updateTimeCode(): void {
-    this.demoCode = `<qeydar-time-picker
+    this.demoHtmlCode = `<qeydar-time-picker
   [rtl]="rtl"
   [showIcon]="showIcon"
   [displayFormat]="timeDisplayFormat"
@@ -162,20 +155,29 @@ readOnlyInput = ${this.readOnlyInput};`;
   [readOnly]="readOnly"
   [readOnlyInput]="readOnlyInput"
   [(ngModel)]="selectedTime"
-></qeydar-time-picker>
+></qeydar-time-picker>`;
 
-selectedTime: {{ this.toCodeValue(this.selectedTime) }}
+    this.demoTsCode = `import { Component } from '@angular/core';
+import { TimeValueType } from '@qeydar/datepicker';
 
-// Current settings
-rtl = ${this.rtl};
-showIcon = ${this.showIcon};
-timeValueType: TimeValueType = '${this.timeValueType}';
-timeDisplayFormat = '${this.escapeCode(this.timeDisplayFormat)}';
-isInline = ${this.isInline};
-disabled = ${this.disabled};
-allowEmpty = ${this.allowEmpty};
-readOnly = ${this.readOnly};
-readOnlyInput = ${this.readOnlyInput};`;
+@Component({
+  selector: 'app-time-example',
+  templateUrl: './time-example.component.html',
+})
+export class TimeExampleComponent {
+  selectedTime = ${this.toCodeValue(this.selectedTime)};
+
+  rtl = ${this.rtl};
+  showIcon = ${this.showIcon};
+  timeValueType: TimeValueType = '${this.timeValueType}';
+  timeDisplayFormat = '${this.escapeCode(this.timeDisplayFormat)}';
+  minTime = ${this.toCodeValue(this.minTime)};
+  maxTime = ${this.toCodeValue(this.maxTime)};
+  isInline = ${this.isInline};
+  disabled = ${this.disabled};
+  readOnly = ${this.readOnly};
+  readOnlyInput = ${this.readOnlyInput};
+}`;
   }
 
   private toCodeValue(value: any): string {
