@@ -12,9 +12,16 @@
     font-size: 14px;
     position: relative;
 
-    &.selected {
+    &.selected,
+    &.range-start,
+    &.range-end {
       background-color: $dp-color-primary;
       color: $dp-color-primary-text;
+    }
+
+    &.in-range {
+      background-color: $dp-color-hover;
+      color: $dp-color-text;
     }
   }
 }

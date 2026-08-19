@@ -373,6 +373,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   private _minDate: any;
   private _maxDate: any;
   private _format = 'yyyy/MM/dd';
+  private _originalFormat = 'yyyy/MM/dd';
 
   get valueAdapter() {
     return this.valueFormat == 'jalali'? this.jalali: this.gregorian;
@@ -475,6 +476,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Event Handlers ==========
   handleChanges(changes: SimpleChanges): void {
+    if (changes['format']) {
+      this._originalFormat = changes['format'].currentValue;
+    }
     if (changes['calendarType']) {
       this.setDateAdapter();
       this.updateInputValue();
@@ -845,7 +849,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       case 'month':
         return 'yyyy/MM';
       default:
-        return this.format;
+        return this._originalFormat;
     }
   }
 

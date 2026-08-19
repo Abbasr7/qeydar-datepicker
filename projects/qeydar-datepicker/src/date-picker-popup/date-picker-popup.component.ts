@@ -97,8 +97,13 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
             [monthTemplate]="$any(monthTemplate)"
             [isActiveMonthNumber]="isActiveMonthNumber.bind(this)"
             [isMonthDisabled]="isMonthDisabled.bind(this)"
+            [isMonthInRange]="isMonthInRange.bind(this)"
+            [isMonthRangeStart]="isMonthRangeStart.bind(this)"
+            [isMonthRangeEnd]="isMonthRangeEnd.bind(this)"
             [getMonthName]="getMonthName.bind(this)"
             (selectMonth)="selectMonth($event,false)"
+            (mouseEnter)="onMonthHover($event)"
+            (mouseLeave)="onMouseLeave()"
           ></qeydar-months-grid>
 
           <qeydar-years-grid
@@ -107,8 +112,13 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
             [yearList]="yearList"
             [yearTemplate]="$any(yearTemplate)"
             [isActiveYear]="isActiveYearNumber.bind(this)"
+            [isYearInRange]="isYearInRange.bind(this)"
+            [isYearRangeStart]="isYearRangeStart.bind(this)"
+            [isYearRangeEnd]="isYearRangeEnd.bind(this)"
             [isYearDisabled]="isYearDisabled.bind(this)"
             (selectYear)="selectYear($event)"
+            (mouseEnter)="onYearHover($event)"
+            (mouseLeave)="onMouseLeave()"
           ></qeydar-years-grid>
         </div>
 
@@ -447,11 +457,21 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   selectMonth(month: number, closeAfterSelection: boolean = false): void {
     if (this.isMonthDisabled(month)) return;
 
-    this.currentDate = this.dateAdapter.createDate(
-      this.dateAdapter.getYear(this.currentDate), 
-      month - 1, 
-      1
+    // Preserve the day when just navigating between modes; use day 1 only for mode finalization
+    const dayToUse = (this.mode === 'month' || closeAfterSelection) ? 1 : this.dateAdapter.getDate(this.currentDate);
+
+    // Create the new date and preserve existing time portion when available
+    let newDate = this.dateAdapter.createDate(
+      this.dateAdapter.getYear(this.currentDate),
+      month - 1,
+      dayToUse
     );
+
+    const existingDate = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
+    if (existingDate) {
+      newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDate);
+    }
+    this.currentDate = newDate;
 
     if (this.isRange && this.mode === 'month') {
       this.handleRangeSelection(this.currentDate);
@@ -474,11 +494,22 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   selectYear(year: number, sideSelector = false): void {
     if (this.isYearDisabled(year)) return;
 
-    this.currentDate = this.dateAdapter.createDate(
-      year, 
-      this.dateAdapter.getMonth(this.currentDate), 
-      1
+    // Preserve day and month when just navigating between modes
+    const dayToUse = this.mode === 'year' ? 1 : this.dateAdapter.getDate(this.currentDate);
+    const monthToUse = this.dateAdapter.getMonth(this.currentDate);
+
+    // Create the new date and preserve existing time portion when available
+    let newDate = this.dateAdapter.createDate(
+      year,
+      monthToUse,
+      dayToUse
     );
+
+    const existingDateForYear = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
+    if (existingDateForYear) {
+      newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDateForYear);
+    }
+    this.currentDate = newDate;
 
     if (this.isRange && this.mode === 'year') {
       this.handleRangeSelection(this.currentDate);
@@ -592,6 +623,70 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     return this.calendarUtils.isActiveYear(year, this.currentDate, this.dateAdapter);
   }
 
+  isMonthRangeStart(month: number): boolean {
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const year = this.dateAdapter.getYear(this.currentDate);
+    return this.dateAdapter.getYear(this.selectedStartDate) === year && this.dateAdapter.getMonth(this.selectedStartDate) === month - 1;
+  }
+
+  isMonthRangeEnd(month: number): boolean {
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const endDate = this.selectedEndDate || this.tempEndDate;
+    if (!endDate) return false;
+    const year = this.dateAdapter.getYear(this.currentDate);
+    return this.dateAdapter.getYear(endDate) === year && this.dateAdapter.getMonth(endDate) === month - 1;
+  }
+
+  isMonthInRange(month: number): boolean {
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const endDate = this.selectedEndDate || this.tempEndDate;
+    if (!endDate) return false;
+
+    const year = this.dateAdapter.getYear(this.currentDate);
+    const startYear = this.dateAdapter.getYear(this.selectedStartDate);
+    const endYear = this.dateAdapter.getYear(endDate);
+    const startMonth = this.dateAdapter.getMonth(this.selectedStartDate) + 1;
+    const endMonth = this.dateAdapter.getMonth(endDate) + 1;
+
+    if (year < startYear || year > endYear) {
+      return false;
+    }
+
+    if (startYear === endYear) {
+      return year === startYear && month > startMonth && month < endMonth;
+    }
+
+    if (year === startYear) {
+      return month > startMonth;
+    }
+
+    if (year === endYear) {
+      return month < endMonth;
+    }
+
+    return true;
+  }
+
+  isYearRangeStart(year: number): boolean {
+    return this.isRange && this.selectedStartDate && this.dateAdapter.getYear(this.selectedStartDate) === year;
+  }
+
+  isYearRangeEnd(year: number): boolean {
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const endDate = this.selectedEndDate || this.tempEndDate;
+    if (!endDate) return false;
+    return this.dateAdapter.getYear(endDate) === year;
+  }
+
+  isYearInRange(year: number): boolean {
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const endDate = this.selectedEndDate || this.tempEndDate;
+    if (!endDate) return false;
+    const startYear = this.dateAdapter.getYear(this.selectedStartDate);
+    const endYear = this.dateAdapter.getYear(endDate);
+    return year > startYear && year < endYear;
+  }
+
   isActiveYearRange(startYear: number): boolean {
     return this.calendarUtils.isActiveYearRange(startYear, this.yearList);
   }
@@ -676,6 +771,23 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     this.tempEndDate = this.selectionStrategy.handleMouseEnter(date, this.selectedStartDate, this.selectedEndDate);
   }
 
+  onMouseLeave(): void {
+    this.tempEndDate = null;
+  }
+
+  onMonthHover(month: number): void {
+    if (!this.isRange || this.selectedEndDate || !this.selectedStartDate) return;
+    const year = this.dateAdapter.getYear(this.currentDate);
+    const date = this.dateAdapter.createDate(year, month - 1, 1);
+    this.tempEndDate = this.selectionStrategy.handleMouseEnter(date, this.selectedStartDate, this.selectedEndDate);
+  }
+
+  onYearHover(year: number): void {
+    if (!this.isRange || this.selectedEndDate || !this.selectedStartDate) return;
+    const date = this.dateAdapter.createDate(year, this.dateAdapter.getMonth(this.currentDate), 1);
+    this.tempEndDate = this.selectionStrategy.handleMouseEnter(date, this.selectedStartDate, this.selectedEndDate);
+  }
+
   @HostListener('click')
   onClickInside(): void {
     this.clickInside.emit(true);
@@ -708,11 +820,17 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   // ========== Year Management Methods ==========
   generateYearRanges(length: number = 15): void {
-    this.yearRanges = this.calendarUtils.generateYearRanges(length, this.dateAdapter);
+    this.yearRanges = this.calendarUtils.generateYearRanges(length, this.dateAdapter, this.currentDate);
   }
 
   generateYearList(length: number = 15): void {
-    const date = this.selectedDate || this.selectedEndDate || this.selectedStartDate || new Date();
+    // In range mode, prioritize start date to show the beginning of the range
+    let date: Date;
+    if (this.isRange && this.selectedStartDate) {
+      date = this.selectedStartDate;
+    } else {
+      date = this.selectedDate || this.selectedEndDate || this.selectedStartDate || new Date();
+    }
     const currentYear = this.dateAdapter.getYear(date);
     
     this.yearList = this.calendarUtils.generateYearList(currentYear, length);
@@ -801,8 +919,12 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
         changes['selectedEndDate'] || 
         changes['mode'] || 
         changes['dateAdapter']) {
+      this.tempEndDate = null;
       this.setInitialDate();
       this.generateCalendar();
+      if (changes['mode']) {
+        this.scrollToSelectedItem();
+      }
     }
     
     if (changes['minDate'] || changes['maxDate']) {
@@ -818,6 +940,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   determineInitialDate(): Date {
     if (this.isRange) {
+      if ((this.mode === 'month' || this.mode === 'year') && this.selectedStartDate) {
+        return this.selectedStartDate;
+      }
       if (this.activeInput === 'start') {
         return this.selectedStartDate || this.dateAdapter.today();
       }

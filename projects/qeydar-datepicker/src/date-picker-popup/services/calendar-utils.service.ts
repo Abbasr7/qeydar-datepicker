@@ -35,17 +35,19 @@ export class CalendarUtilsService {
   /**
    * Generate year ranges for year selector
    */
-  generateYearRanges(length: number = 15,dateAdapter: DateAdapter<Date>): YearRange[] {
+  generateYearRanges(length: number = 15, dateAdapter: DateAdapter<Date>, centerDate?: Date): YearRange[] {
     const yearCount = 15;
-    const currentYear = dateAdapter.getYear(new Date);
-    const startYear = currentYear - Math.floor(yearCount/2) - (yearCount * Math.floor(length/2));
+    // Use provided centerDate if present, otherwise fall back to current date
+    const currentYear = dateAdapter.getYear(centerDate || new Date());
+    // Calculate start so that the currentYear is roughly centered in the overall ranges
+    const startYear = currentYear - Math.floor(yearCount / 2) - (yearCount * Math.floor(length / 2));
     const yearRanges: YearRange[] = [];
-    
+
     for (let i = 0; i < length; i++) {
       const start = startYear + i * yearCount;
-      yearRanges.push({ start, end: start + 14 });
+      yearRanges.push({ start, end: start + yearCount - 1 });
     }
-    
+
     return yearRanges;
   }
 

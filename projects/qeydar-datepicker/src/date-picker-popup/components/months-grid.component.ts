@@ -13,8 +13,13 @@ import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
         *ngFor="let month of monthListNum"
         tabindex="-1"
         [class.selected]="isActiveMonthNumber(month)"
+        [class.in-range]="isMonthInRange(month)"
+        [class.range-start]="isMonthRangeStart(month)"
+        [class.range-end]="isMonthRangeEnd(month)"
         [disabled]="isMonthDisabled(month)"
         (click)="selectMonth.emit(month)"
+        (mouseenter)="mouseEnter.emit(month)"
+        (mouseleave)="mouseLeave.emit()"
       >
         <ng-container *ngIf="monthTemplate; else monthDefTemplate">
           <ng-container *ngTemplateOutlet="$any(monthTemplate); context: { $implicit: month }"></ng-container>
@@ -32,10 +37,15 @@ export class MonthsGridComponent {
   @Input() monthTemplate: TemplateRef<any> | null = null;
 
   @Input() isActiveMonthNumber: (month: number) => boolean;
+  @Input() isMonthInRange: (month: number) => boolean;
+  @Input() isMonthRangeStart: (month: number) => boolean;
+  @Input() isMonthRangeEnd: (month: number) => boolean;
   @Input() isMonthDisabled: (month: number) => boolean;
   @Input() getMonthName: (month: number) => string;
 
   @Output() selectMonth = new EventEmitter<number>();
+  @Output() mouseEnter = new EventEmitter<number>();
+  @Output() mouseLeave = new EventEmitter<void>();
 }
 
 

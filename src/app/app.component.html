@@ -178,6 +178,7 @@
                 [mode]="'day'"
                 [showSidebar]="showSidebar"
                 [valueFormat]="valueFormat"
+                [allowEmpty]="true"
                 (ngModelChange)="updateCode()"
               ></qeydar-date-picker>
             </div>
@@ -192,6 +193,7 @@
                 [mode]="'day'"
                 [showSidebar]="showSidebar"
                 [valueFormat]="valueFormat"
+                [allowEmpty]="true"
                 (ngModelChange)="updateCode()"
               ></qeydar-date-picker>
             </div>
@@ -368,6 +370,16 @@
         <div class="box">
           <div class="demo">
             <hijri-demo></hijri-demo>
+          </div>
+        </div>
+        <div class="box">
+          <div class="demo">
+            <app-modern-card-datepicker></app-modern-card-datepicker>
+          </div>
+        </div>
+        <div class="box">
+          <div class="demo">
+            <app-minimalist-datepicker></app-minimalist-datepicker>
           </div>
         </div>
       </div>
