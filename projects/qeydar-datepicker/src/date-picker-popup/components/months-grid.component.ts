@@ -22,7 +22,7 @@ import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
         (mouseleave)="mouseLeave.emit()"
       >
         <ng-container *ngIf="monthTemplate; else monthDefTemplate">
-          <ng-container *ngTemplateOutlet="$any(monthTemplate); context: { $implicit: month }"></ng-container>
+          <ng-container *ngTemplateOutlet="$any(monthTemplate); context: { $implicit: month, month: month, name: getMonthName(month), isSelected: isActiveMonthNumber(month), isInRange: isMonthInRange(month), isDisabled: isMonthDisabled(month) }"></ng-container>
         </ng-container>
         <ng-template #monthDefTemplate>
           {{ getMonthName(month) }}

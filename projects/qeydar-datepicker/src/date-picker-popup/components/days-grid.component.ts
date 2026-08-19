@@ -27,7 +27,7 @@ import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
           (mouseenter)="mouseEnter.emit(day)"
         >
           <ng-container *ngIf="dayTemplate; else dayDefTemplate">
-            <ng-container *ngTemplateOutlet="$any(dayTemplate); context: { $implicit: day }"></ng-container>
+            <ng-container *ngTemplateOutlet="$any(dayTemplate); context: getDayTemplateContext(day)"></ng-container>
           </ng-container>
           <ng-template #dayDefTemplate>
             {{ getDayNumber(day) }}
@@ -52,6 +52,22 @@ export class DaysGridComponent {
   @Input() isToday: (d: Date) => boolean;
   @Input() isDateDisabled: (d: Date) => boolean;
   @Input() getDayNumber: (d: Date) => number;
+
+  getDayTemplateContext(day: Date): object {
+    return {
+      $implicit: day,
+      day,
+      date: day,
+      dayNumber: this.getDayNumber(day),
+      isSelected: this.isSelected(day),
+      isInRange: this.isInRange(day),
+      isRangeStart: this.isRangeStart(day),
+      isRangeEnd: this.isRangeEnd(day),
+      isToday: this.isToday(day),
+      isDisabled: this.isDateDisabled(day),
+      isCurrentMonth: this.isSameMonth(day, this.currentDate)
+    };
+  }
 
   @Output() selectDay = new EventEmitter<Date>();
   @Output() mouseEnter = new EventEmitter<Date>();

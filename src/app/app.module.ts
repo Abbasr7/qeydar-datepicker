@@ -7,11 +7,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DisabledDates } from './demos/disabled/diabled-date';
 import { DisabledTimes } from './demos/disabled/diabled-time';
 import { CustomRender } from './demos/custom-render';
+import { MaterialRender } from './demos/material-render';
+import { SlotDemosComponent } from './demos/slot-demos.component';
 import { HijriDemoComponent } from './demos/hijri-demo.component';
 import { BidiModule } from "@angular/cdk/bidi";
 // import { QeydarDatePickerModule } from '@qeydar/datepicker';
 import { AdvancedDatePicker, CustomDatePickerExample, MinimalDatePicker } from 'projects/qeydar-datepicker/src/components/examples/custom-date-picker.example';
-import { MinimalistDatePicker, ModernCardDatePicker } from './demos/disabled/custom1';
 import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
 
 @NgModule({
@@ -20,6 +21,8 @@ import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-da
     DisabledDates,
     DisabledTimes,
     CustomRender,
+    MaterialRender,
+    SlotDemosComponent,
     HijriDemoComponent,
   ],
   imports: [
@@ -32,8 +35,6 @@ import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-da
     CustomDatePickerExample,
     MinimalDatePicker,
     AdvancedDatePicker,
-    ModernCardDatePicker,
-    MinimalistDatePicker
 ],
   providers: [],
   bootstrap: [AppComponent]

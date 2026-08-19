@@ -269,6 +269,52 @@ export class AppComponent {
 }
 ```
 
+### Slot Templates
+
+The existing `day`, `month`, and `year` templates remain compatible. The popup also supports optional headless slots through the same directive:
+
+- `toolbar`: rendered above the calendar header.
+- `header`: replaces the built-in calendar header.
+- `body`: replaces all day/month/year grid components, so a custom wheel picker can render all columns itself.
+- `footer`: replaces the built-in footer.
+
+```html
+<qeydar-date-picker [(ngModel)]="selectedDate">
+  <ng-template qeydarTemplate="toolbar" let-context>
+    <button type="button" (click)="context.selectQuickDate(today)">Today</button>
+  </ng-template>
+
+  <ng-template qeydarTemplate="body" let-context>
+    <div class="wheel-picker">
+      <button
+        type="button"
+        *ngFor="let day of context.days"
+        [disabled]="context.validation.isDateDisabled(day)"
+        (click)="context.actions.selectDay(day)"
+      >{{ day.getDate() }}</button>
+    </div>
+  </ng-template>
+
+  <ng-template qeydarTemplate="footer" let-context>
+    <button type="button" (click)="context.cancel()">Cancel</button>
+    <button type="button" (click)="context.confirm()">OK</button>
+  </ng-template>
+</qeydar-date-picker>
+```
+
+`body` is an escape hatch for a fully custom calendar body; when it is present, the default day, month, and year grids are not created. Slot actions delegate to the existing calendar, selection, and validation services. The slot interfaces are exported from the package for TypeScript consumers.
+
+### Slot Templates
+
+The existing `day`, `month`, and `year` templates remain compatible. The popup also supports optional headless slots through the same directive:
+
+- `toolbar`: rendered above the calendar header.
+- `header`: replaces the built-in calendar header.
+- `body`: replaces all day/month/year grid components, so a custom wheel picker can render all columns itself.
+- `footer`: replaces the built-in footer.
+
+`body` is an escape hatch for a fully custom calendar body; when it is present, the default day, month, and year grids are not created. Slot actions delegate to the existing calendar, selection, and validation services. The slot interfaces are exported from the package for TypeScript consumers.
+
 ### Read-only Mode
 The DatePicker now supports two types of read-only modes:
 

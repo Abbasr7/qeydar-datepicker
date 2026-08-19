@@ -22,7 +22,7 @@ import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
         (mouseleave)="mouseLeave.emit()"
       >
         <ng-container *ngIf="yearTemplate; else yearDefTemplate">
-          <ng-container *ngTemplateOutlet="$any(yearTemplate); context: { $implicit: year }"></ng-container>
+          <ng-container *ngTemplateOutlet="$any(yearTemplate); context: { $implicit: year, year: year, isSelected: isActiveYear(year), isInRange: isYearInRange(year), isDisabled: isYearDisabled(year) }"></ng-container>
         </ng-container>
         <ng-template #yearDefTemplate>
           {{ year }}

@@ -4,8 +4,8 @@ import { CustomLabels, DateRange, Lang_Locale, YearRange } from '../utils/models
 import { DestroyService, QeydarDatePickerService } from '../date-picker.service';
 import { DatepickerMode } from '../utils/types';
 import { TimePickerComponent } from '../time-picker/time-picker.component';
-import { takeUntil } from 'rxjs';
-import { NgIf } from '@angular/common';
+import { Subscription, takeUntil } from 'rxjs';
+import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { CustomTemplate } from '../utils/template.directive';
 import { CalendarHeaderComponent } from './components/calendar-header.component';
 import { CalendarSidebarComponent } from './components/calendar-sidebar.component';
@@ -16,6 +16,13 @@ import { CalendarFooterComponent } from './components/calendar-footer.component'
 import { CalendarUtilsService } from './services/calendar-utils.service';
 import { ValidationStrategyService } from './services/validation-strategy.service';
 import { SelectionStrategyService } from './services/selection-strategy.service';
+import {
+  BodyTemplateContext,
+  FooterTemplateContext,
+  HeaderTemplateContext,
+  ToolbarTemplateContext,
+  DatePickerTemplateMap
+} from '../utils/template-contexts';
 
 @Component({
   selector: 'qeydar-date-picker-popup',
@@ -27,6 +34,7 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
   },
   imports: [
     NgIf,
+    NgTemplateOutlet,
     TimePickerComponent,
     CalendarHeaderComponent,
     CalendarSidebarComponent,
@@ -47,79 +55,93 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
           [monthListNum]="monthListNum"
           [yearList]="yearList"
           [yearRanges]="yearRanges"
-          [isActivePeriod]="isActivePeriod.bind(this)"
-          [getMonthName]="getMonthName.bind(this)"
-          [isActiveMonth]="isActiveMonth.bind(this)"
-          [isMonthDisabled]="isMonthDisabled.bind(this)"
-          [isActiveYear]="isActiveYear.bind(this)"
-          [isYearDisabled]="isYearDisabled.bind(this)"
-          [isActiveYearRange]="isActiveYearRange.bind(this)"
-          [isYearRangeDisabled]="isYearRangeDisabled.bind(this)"
+          [isActivePeriod]="isActivePeriodFn"
+          [getMonthName]="getMonthNameFn"
+          [isActiveMonth]="isActiveMonthFn"
+          [isMonthDisabled]="isMonthDisabledFn"
+          [isActiveYear]="isActiveYearFn"
+          [isYearDisabled]="isYearDisabledFn"
+          [isActiveYearRange]="isActiveYearRangeFn"
+          [isYearRangeDisabled]="isYearRangeDisabledFn"
           (selectPeriod)="selectPeriod($event)"
           (selectMonth)="selectMonth($event, false)"
           (selectYear)="selectYear($event, true)"
           (selectYearRange)="selectYearRange($event)"
         ></qeydar-calendar-sidebar>
         <div class="calendar">
-          <qeydar-calendar-header
-            [mode]="mode"
-            [currentMonthName]="getCurrentMonthName()"
-            [currentYear]="getCurrentYear()"
-            [prevDisabled]="isPrevMonthDisabled()"
-            [nextDisabled]="isNextMonthDisabled()"
-            (prev)="goPrev()"
-            (next)="goNext()"
-            (showMonths)="showMonthSelector()"
-            (showYears)="showYearSelector()"
-          ></qeydar-calendar-header>
+          <ng-container *ngIf="toolbarTemplate">
+            <ng-container [ngTemplateOutlet]="toolbarTemplate" [ngTemplateOutletContext]="getTemplateOutletContext(toolbarContext)"></ng-container>
+          </ng-container>
 
-          <qeydar-days-grid
-            [viewMode]="viewMode"
-            [days]="days"
-            [weekDays]="getWeekDays()"
-            [currentDate]="currentDate"
-            [dayTemplate]="$any(dayTemplate)"
-            [isSameMonth]="isSameMonth.bind(this)"
-            [isSelected]="isSelected.bind(this)"
-            [isInRange]="isInRange.bind(this)"
-            [isRangeStart]="isRangeStart.bind(this)"
-            [isRangeEnd]="isRangeEnd.bind(this)"
-            [isToday]="isToday.bind(this)"
-            [isDateDisabled]="isDateDisabled.bind(this)"
-            [getDayNumber]="dateAdapter.getDate.bind(dateAdapter)"
-            (selectDay)="selectDate($event)"
-            (mouseEnter)="onMouseEnter($event, $any(null))"
-          ></qeydar-days-grid>
+          <ng-container *ngIf="headerTemplate; else defaultHeaderTemplate">
+            <ng-container [ngTemplateOutlet]="headerTemplate" [ngTemplateOutletContext]="getTemplateOutletContext(headerContext)"></ng-container>
+          </ng-container>
+          <ng-template #defaultHeaderTemplate>
+            <qeydar-calendar-header
+              [mode]="mode"
+              [currentMonthName]="getCurrentMonthName()"
+              [currentYear]="getCurrentYear()"
+              [prevDisabled]="isPrevMonthDisabled()"
+              [nextDisabled]="isNextMonthDisabled()"
+              (prev)="goPrev()"
+              (next)="goNext()"
+              (showMonths)="showMonthSelector()"
+              (showYears)="showYearSelector()"
+            ></qeydar-calendar-header>
+          </ng-template>
 
-          <qeydar-months-grid
-            [viewMode]="viewMode"
-            [monthListNum]="monthListNum"
-            [monthTemplate]="$any(monthTemplate)"
-            [isActiveMonthNumber]="isActiveMonthNumber.bind(this)"
-            [isMonthDisabled]="isMonthDisabled.bind(this)"
-            [isMonthInRange]="isMonthInRange.bind(this)"
-            [isMonthRangeStart]="isMonthRangeStart.bind(this)"
-            [isMonthRangeEnd]="isMonthRangeEnd.bind(this)"
-            [getMonthName]="getMonthName.bind(this)"
-            (selectMonth)="selectMonth($event,false)"
-            (mouseEnter)="onMonthHover($event)"
-            (mouseLeave)="onMouseLeave()"
-          ></qeydar-months-grid>
+          <ng-container *ngIf="bodyTemplate; else defaultBodyTemplate">
+            <ng-container [ngTemplateOutlet]="bodyTemplate" [ngTemplateOutletContext]="getTemplateOutletContext(bodyContext)"></ng-container>
+          </ng-container>
+          <ng-template #defaultBodyTemplate>
+            <qeydar-days-grid
+              [viewMode]="viewMode"
+              [days]="days"
+              [weekDays]="getWeekDays()"
+              [currentDate]="currentDate"
+              [dayTemplate]="$any(dayTemplate)"
+              [isSameMonth]="isSameMonthFn"
+              [isSelected]="isSelectedFn"
+              [isInRange]="isInRangeFn"
+              [isRangeStart]="isRangeStartFn"
+              [isRangeEnd]="isRangeEndFn"
+              [isToday]="isTodayFn"
+              [isDateDisabled]="isDateDisabledFn"
+              [getDayNumber]="getDayNumberFn"
+              (selectDay)="selectDate($event)"
+              (mouseEnter)="onMouseEnter($event, $any(null))"
+            ></qeydar-days-grid>
 
-          <qeydar-years-grid
-            [viewMode]="viewMode"
-            [mode]="mode"
-            [yearList]="yearList"
-            [yearTemplate]="$any(yearTemplate)"
-            [isActiveYear]="isActiveYearNumber.bind(this)"
-            [isYearInRange]="isYearInRange.bind(this)"
-            [isYearRangeStart]="isYearRangeStart.bind(this)"
-            [isYearRangeEnd]="isYearRangeEnd.bind(this)"
-            [isYearDisabled]="isYearDisabled.bind(this)"
-            (selectYear)="selectYear($event)"
-            (mouseEnter)="onYearHover($event)"
-            (mouseLeave)="onMouseLeave()"
-          ></qeydar-years-grid>
+            <qeydar-months-grid
+              [viewMode]="viewMode"
+              [monthListNum]="monthListNum"
+              [monthTemplate]="$any(monthTemplate)"
+              [isActiveMonthNumber]="isActiveMonthNumberFn"
+              [isMonthDisabled]="isMonthDisabledFn"
+              [isMonthInRange]="isMonthInRangeFn"
+              [isMonthRangeStart]="isMonthRangeStartFn"
+              [isMonthRangeEnd]="isMonthRangeEndFn"
+              [getMonthName]="getMonthNameFn"
+              (selectMonth)="selectMonth($event,false)"
+              (mouseEnter)="onMonthHover($event)"
+              (mouseLeave)="onMouseLeave()"
+            ></qeydar-months-grid>
+
+            <qeydar-years-grid
+              [viewMode]="viewMode"
+              [mode]="mode"
+              [yearList]="yearList"
+              [yearTemplate]="$any(yearTemplate)"
+              [isActiveYear]="isActiveYearNumberFn"
+              [isYearInRange]="isYearInRangeFn"
+              [isYearRangeStart]="isYearRangeStartFn"
+              [isYearRangeEnd]="isYearRangeEndFn"
+              [isYearDisabled]="isYearDisabledFn"
+              (selectYear)="selectYear($event)"
+              (mouseEnter)="onYearHover($event)"
+              (mouseLeave)="onMouseLeave()"
+            ></qeydar-years-grid>
+          </ng-template>
         </div>
 
         <!-- Time Picker Integration -->
@@ -138,16 +160,21 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
           ></qeydar-time-picker>
         </div>
       </div>
-      <qeydar-calendar-footer
-        *ngIf="footerDescription || showTimePicker || showToday"
-        [footerDescription]="footerDescription"
-        [showTimePicker]="showTimePicker"
-        [showToday]="showToday"
-        [okLabel]="lang.ok"
-        [todayLabel]="lang.today"
-        (okClick)="onOkClick()"
-        (todayClick)="onTodayClick()"
-      ></qeydar-calendar-footer>
+      <ng-container *ngIf="footerTemplate; else defaultFooterTemplate">
+        <ng-container [ngTemplateOutlet]="footerTemplate" [ngTemplateOutletContext]="getTemplateOutletContext(footerContext)"></ng-container>
+      </ng-container>
+      <ng-template #defaultFooterTemplate>
+        <qeydar-calendar-footer
+          *ngIf="footerDescription || showTimePicker || showToday"
+          [footerDescription]="footerDescription"
+          [showTimePicker]="showTimePicker"
+          [showToday]="showToday"
+          [okLabel]="lang.ok"
+          [todayLabel]="lang.today"
+          (okClick)="onOkClick()"
+          (todayClick)="onTodayClick()"
+        ></qeydar-calendar-footer>
+      </ng-template>
     </div>
   `,
   styleUrls: ['./date-picker-popup.component.scss']
@@ -175,8 +202,39 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Input() disabledDates: Array<Date | string> = [];
   @Input() disabledDatesFilter: (date: Date) => boolean;
   @Input() disabledTimesFilter: (date: Date) => boolean;
-  @Input() templates: QueryList<CustomTemplate>;
+  private _templates: QueryList<CustomTemplate> | null = null;
+  private templatesSubscription?: Subscription;
+  private hasResolvedTemplates = false;
+
+  @Input()
+  set templates(value: QueryList<CustomTemplate> | null) {
+    if (this._templates === value) {
+      return;
+    }
+
+    this.templatesSubscription?.unsubscribe();
+    this._templates = value;
+    this.templatesSubscription = value?.changes
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.resolveTemplates());
+    if (this.hasResolvedTemplates || value) {
+      this.resolveTemplates();
+    }
+  }
+  get templates(): QueryList<CustomTemplate> | null {
+    return this._templates;
+  }
+
   @Input() dateAdapter: DateAdapter<Date>;
+
+  /** Optional template inserted above the calendar header. */
+  toolbarTemplate: TemplateRef<unknown> | null = null;
+  /** Optional template replacing the built-in calendar header. */
+  headerTemplate: TemplateRef<unknown> | null = null;
+  /** Optional template replacing the built-in calendar footer. */
+  footerTemplate: TemplateRef<unknown> | null = null;
+  /** Optional template replacing all default calendar grids. */
+  bodyTemplate: TemplateRef<unknown> | null = null;
 
   // ========== Output Properties ==========
   @Output() dateSelected = new EventEmitter<Date>();
@@ -203,11 +261,125 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   timeoutId: any = null;
   dayTemplate: TemplateRef<any>;
   monthTemplate: TemplateRef<any>;
-  quarterTemplate: TemplateRef<any>;
   yearTemplate: TemplateRef<any>;
-  // helpers for child bindings
-  isActiveMonthNumber = (m: number) => m === this.dateAdapter.getMonth(this.currentDate) + 1;
-  isActiveYearNumber = (y: number) => y === this.dateAdapter.getYear(this.currentDate);
+  private resolvedTemplates: DatePickerTemplateMap = {};
+
+  // Stable callback references keep OnPush child inputs from changing on every check.
+  readonly isActivePeriodFn = this.isActivePeriod.bind(this);
+  readonly getMonthNameFn = this.getMonthName.bind(this);
+  readonly isActiveMonthFn = this.isActiveMonth.bind(this);
+  readonly isMonthDisabledFn = this.isMonthDisabled.bind(this);
+  readonly isActiveYearFn = this.isActiveYear.bind(this);
+  readonly isYearDisabledFn = this.isYearDisabled.bind(this);
+  readonly isActiveYearRangeFn = this.isActiveYearRange.bind(this);
+  readonly isYearRangeDisabledFn = this.isYearRangeDisabled.bind(this);
+  readonly isSameMonthFn = this.isSameMonth.bind(this);
+  readonly isSelectedFn = this.isSelected.bind(this);
+  readonly isInRangeFn = this.isInRange.bind(this);
+  readonly isRangeStartFn = this.isRangeStart.bind(this);
+  readonly isRangeEndFn = this.isRangeEnd.bind(this);
+  readonly isTodayFn = this.isToday.bind(this);
+  readonly isDateDisabledFn = this.isDateDisabled.bind(this);
+  readonly getDayNumberFn = (date: Date): number => this.dateAdapter.getDate(date);
+  readonly isActiveMonthNumberFn = (month: number): boolean =>
+    !!this.currentDate && month === this.dateAdapter.getMonth(this.currentDate) + 1;
+  readonly isMonthInRangeFn = this.isMonthInRange.bind(this);
+  readonly isMonthRangeStartFn = this.isMonthRangeStart.bind(this);
+  readonly isMonthRangeEndFn = this.isMonthRangeEnd.bind(this);
+  readonly isActiveYearNumberFn = (year: number): boolean =>
+    !!this.currentDate && year === this.dateAdapter.getYear(this.currentDate);
+  readonly isYearInRangeFn = this.isYearInRange.bind(this);
+  readonly isYearRangeStartFn = this.isYearRangeStart.bind(this);
+  readonly isYearRangeEndFn = this.isYearRangeEnd.bind(this);
+  readonly selectQuickDateFn = (date: Date): void => this.selectDate(date);
+  readonly selectQuickRangeFn = (start: Date, end: Date): void => this.selectQuickRange(start, end);
+  readonly closeFn = (): void => this.closeDatePicker();
+  readonly prevFn = (): void => this.goPrev();
+  readonly nextFn = (): void => this.goNext();
+  readonly showMonthsFn = (): void => this.showMonthSelector();
+  readonly showYearsFn = (): void => this.showYearSelector();
+  readonly confirmFn = (): void => this.onOkClick();
+  readonly cancelFn = (): void => this.closeDatePicker();
+  readonly todayFn = (): void => this.onTodayClick();
+  readonly selectDayFn = (date: Date): void => this.selectDate(date);
+  readonly selectMonthFn = (month: number): void => this.selectMonth(month, false);
+  readonly selectYearFn = (year: number): void => this.selectYear(year);
+  readonly goPrevFn = (): void => this.goPrev();
+  readonly goNextFn = (): void => this.goNext();
+
+  getTemplateOutletContext<T extends object>(context: T): { $implicit: T } & T {
+    return { $implicit: context, ...context };
+  }
+
+  get toolbarContext(): ToolbarTemplateContext {
+    return {
+      currentDate: this.currentDate || new Date(),
+      mode: this.mode,
+      isRange: this.isRange,
+      selectQuickDate: this.selectQuickDateFn,
+      selectQuickRange: this.selectQuickRangeFn,
+      close: this.closeFn
+    };
+  }
+
+  get headerContext(): HeaderTemplateContext {
+    return {
+      currentDate: this.currentDate || new Date(),
+      currentMonthName: this.currentDate ? this.getCurrentMonthName() : '',
+      currentYear: this.currentDate ? this.getCurrentYear() : 0,
+      viewMode: this.viewMode,
+      mode: this.mode,
+      prevDisabled: this.isPrevMonthDisabled(),
+      nextDisabled: this.isNextMonthDisabled(),
+      prev: this.prevFn,
+      next: this.nextFn,
+      showMonths: this.showMonthsFn,
+      showYears: this.showYearsFn
+    };
+  }
+
+  get footerContext(): FooterTemplateContext {
+    return {
+      selectedDate: this.selectedDate,
+      selectedStartDate: this.selectedStartDate,
+      selectedEndDate: this.selectedEndDate,
+      isRange: this.isRange,
+      showTimePicker: this.showTimePicker,
+      confirm: this.confirmFn,
+      cancel: this.cancelFn,
+      today: this.todayFn
+    };
+  }
+
+  get bodyContext(): BodyTemplateContext {
+    return {
+      viewMode: this.viewMode,
+      currentDate: this.currentDate || new Date(),
+      days: this.days,
+      monthListNum: this.monthListNum,
+      yearList: this.yearList,
+      weekDays: this.getWeekDays(),
+      selection: {
+        isSelected: this.isSelectedFn,
+        isInRange: this.isInRangeFn,
+        isRangeStart: this.isRangeStartFn,
+        isRangeEnd: this.isRangeEndFn,
+        isToday: this.isTodayFn
+      },
+      validation: {
+        isDateDisabled: this.isDateDisabledFn,
+        isMonthDisabled: this.isMonthDisabledFn,
+        isYearDisabled: this.isYearDisabledFn
+      },
+      actions: {
+        selectDay: this.selectDayFn,
+        selectMonth: this.selectMonthFn,
+        selectYear: this.selectYearFn,
+        goPrev: this.goPrevFn,
+        goNext: this.goNextFn
+      }
+    };
+  }
 
   // ========== Getters ==========
   public get getDate(): Date {
@@ -240,32 +412,48 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   ngAfterViewInit() {
     this.scrollToSelectedItem();
     this.setTimePickerDate();
-    this.templates.forEach((item) => {
-      switch (item.getType()) {
-          case 'day':
-              this.dayTemplate = item.template;
-              break;
-
-          case 'month':
-              this.monthTemplate = item.template;
-              break;
-
-          case 'quarter':
-              this.quarterTemplate = item.template;
-              break;
-
-          case 'year':
-              this.yearTemplate = item.template;
-              break;
-      }
-    });
-    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {
     if (this.timeoutId != null) {
       clearTimeout(this.timeoutId);
     }
+    this.templatesSubscription?.unsubscribe();
+  }
+
+  private resolveTemplates(): void {
+    this.hasResolvedTemplates = true;
+    this.resolvedTemplates = {};
+    this.dayTemplate = undefined;
+    this.monthTemplate = undefined;
+    this.yearTemplate = undefined;
+    this.toolbarTemplate = null;
+    this.headerTemplate = null;
+    this.footerTemplate = null;
+    this.bodyTemplate = null;
+
+    this.templates?.forEach((item) => {
+      const templateType = item.getType();
+      if (templateType === 'quarter') {
+        // TODO: no quarters grid exists yet, so this legacy slot remains inert.
+        return;
+      }
+
+      if (templateType === 'day' || templateType === 'month' || templateType === 'year' ||
+          templateType === 'toolbar' || templateType === 'header' || templateType === 'footer' ||
+          templateType === 'body') {
+        this.resolvedTemplates[templateType] = item.template;
+      }
+    });
+
+    this.dayTemplate = this.resolvedTemplates.day as TemplateRef<any>;
+    this.monthTemplate = this.resolvedTemplates.month as TemplateRef<any>;
+    this.yearTemplate = this.resolvedTemplates.year as TemplateRef<any>;
+    this.toolbarTemplate = this.resolvedTemplates.toolbar || null;
+    this.headerTemplate = this.resolvedTemplates.header || null;
+    this.footerTemplate = this.resolvedTemplates.footer || null;
+    this.bodyTemplate = this.resolvedTemplates.body || null;
+    this.cdr.markForCheck();
   }
   // ========== Initialization Methods ==========
   initializeComponent(): void {
@@ -816,6 +1004,10 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   closeDatePicker(): void {
     this.closePicker.emit();
+  }
+
+  private selectQuickRange(start: Date, end: Date): void {
+    this.dateRangeSelected.emit({ start, end });
   }
 
   // ========== Year Management Methods ==========

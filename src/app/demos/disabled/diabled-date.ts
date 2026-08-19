@@ -1,258 +1,92 @@
-import { Component } from "@angular/core";
-import { JalaliDateAdapter } from "projects/qeydar-datepicker/src/date-adapter";
-
+import { Component } from '@angular/core';
+import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
 
 @Component({
-    selector: 'disabled-dates',
-    template: `
-        Gregorian:
-        <qeydar-date-picker
-            [(ngModel)]="selectedDate"
-            [disabledDates]="disabledDates"
-            [disabledDatesFilter]="disabledDatesFilter"
-        >
-        </qeydar-date-picker>
-        <br>
-        Jalali:
-        <qeydar-date-picker
-            dir="rtl"
-            [rtl]="true"
-            [calendarType]="'jalali'"
-            [disabledDates]="disabledDatesJalali"
-            [disabledDatesFilter]="disabledDatesFilterJalali"
-            [(ngModel)]="selectedDate"
-        >
-        </qeydar-date-picker>
-        <br>
-        Month:
-        <qeydar-date-picker
-            [(ngModel)]="selectedDate"
-            [mode]="'month'"
-            [disabledDatesFilter]="disabledDatesFilterMonth"
-        >
-        </qeydar-date-picker>
-        <br>
-        Year:
-        <qeydar-date-picker
-            [(ngModel)]="selectedDate"
-            [mode]="'year'"
-            [disabledDatesFilter]="disabledDatesFilterYear"
-        >
-        </qeydar-date-picker>
-        <br>
-        Combining with Time:
-        <qeydar-date-picker
-            [format]="'yyyy/MM/dd HH:mm'"
-            [disabledDatesFilter]="disabledDatesFilterCombined"
-            [disabledTimesFilter]="disabledTimesFilter"
-            [(ngModel)]="selectedDate"
-        >
-        </qeydar-date-picker>
-        <button class="toggle-btn" (click)="toggleCode(code)">show code</button>
-        <div id="code" class="code" #code>
-            <code>
-                {{ demoCode }}
-            </code>
-        </div>
-    `,
+  selector: 'disabled-dates',
+  template: `
+    <div class="disabled-date-demo">
+      <div class="disabled-demo-grid">
+        <article class="disabled-demo-item">
+          <div class="demo-item-heading"><span>01</span><h3>Specific dates</h3></div>
+          <p>Disable a list of dates and weekends in Gregorian mode.</p>
+          <qeydar-date-picker [(ngModel)]="selectedDate" [disabledDates]="disabledDates" [disabledDatesFilter]="disabledDatesFilter"></qeydar-date-picker>
+        </article>
+        <article class="disabled-demo-item" dir="rtl">
+          <div class="demo-item-heading"><span>02</span><h3>Jalali rules</h3></div>
+          <p>Use the adapter to disable Jalali years and months.</p>
+          <qeydar-date-picker [rtl]="true" [calendarType]="'jalali'" [disabledDates]="disabledDatesJalali" [disabledDatesFilter]="disabledDatesFilterJalali" [(ngModel)]="selectedDate"></qeydar-date-picker>
+        </article>
+        <article class="disabled-demo-item">
+          <div class="demo-item-heading"><span>03</span><h3>Disabled months</h3></div>
+          <p>Apply a filter to an entire month selection view.</p>
+          <qeydar-date-picker [(ngModel)]="selectedDate" [mode]="'month'" [disabledDatesFilter]="disabledDatesFilterMonth"></qeydar-date-picker>
+        </article>
+        <article class="disabled-demo-item">
+          <div class="demo-item-heading"><span>04</span><h3>Disabled years</h3></div>
+          <p>Keep unavailable years out of the year picker.</p>
+          <qeydar-date-picker [(ngModel)]="selectedDate" [mode]="'year'" [disabledDatesFilter]="disabledDatesFilterYear"></qeydar-date-picker>
+        </article>
+        <article class="disabled-demo-item disabled-demo-item--wide">
+          <div class="demo-item-heading"><span>05</span><h3>Date and time together</h3></div>
+          <p>Combine date and time filters for a working-hours schedule.</p>
+          <qeydar-date-picker [format]="'yyyy/MM/dd HH:mm'" [disabledDatesFilter]="disabledDatesFilterCombined" [disabledTimesFilter]="disabledTimesFilter" [(ngModel)]="selectedDate"></qeydar-date-picker>
+        </article>
+      </div>
+      <div class="child-code-disclosure">
+        <button type="button" class="child-code-toggle" (click)="showCode = !showCode" [attr.aria-expanded]="showCode" aria-controls="disabled-dates-code">{{ showCode ? 'Hide' : 'Show' }} example code <span aria-hidden="true">↘</span></button>
+        <pre id="disabled-dates-code" class="child-code" [hidden]="!showCode"><code>{{ demoCode }}</code></pre>
+      </div>
+    </div>
+  `,
+  styles: [`
+    :host { display: block; width: 100%; }
+    .disabled-date-demo { color: #172238; }
+    .disabled-demo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .disabled-demo-item { min-width: 0; padding: 15px; border: 1px solid #e3e8f1; border-radius: 14px; background: #fff; }
+    .disabled-demo-item--wide { grid-column: span 2; }
+    .demo-item-heading { display: flex; align-items: center; gap: 9px; }
+    .demo-item-heading span { color: #4d68e9; font-size: 10px; font-weight: 800; }
+    h3 { margin: 0; font-size: 13px; letter-spacing: -.02em; }
+    p { min-height: 35px; margin: 7px 0 14px; color: #6b7588; font-size: 11px; line-height: 1.55; }
+    qeydar-date-picker { display: block; }
+    .child-code-disclosure { margin-top: 16px; }
+    .child-code-toggle { padding: 0; border: 0; background: transparent; color: #344dc7; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .child-code-toggle span { display: inline-block; margin-left: 5px; font-size: 14px; }
+    .child-code { max-height: 260px; margin: 12px 0 0; padding: 14px; overflow: auto; border-radius: 10px; background: #19243b; color: #d8e2ff; direction: ltr; font: 11px/1.65 'Courier New', monospace; white-space: pre; }
+    @media (max-width: 680px) { .disabled-demo-grid { grid-template-columns: 1fr; } .disabled-demo-item--wide { grid-column: span 1; } p { min-height: 0; } }
+  `]
 })
 export class DisabledDates {
-    selectedDate: Date | string;
+  selectedDate: Date | string = new Date();
+  showCode = false;
 
-    // Basic
-    disabledDates = [
-        new Date(), // Disables current date
-        '2024/12/05',
-        '2024/12/07'
-    ];
-    disabledDatesFilter = (date: Date) => {
-        const day = date.getDay();
-        // weekends: Saturday (6) and Sunday (0)
-        return day === 0 || day === 6;
-    };
+  disabledDates = [new Date(), '2024/12/05', '2024/12/07'];
+  disabledDatesFilter = (date: Date) => date.getDay() === 0 || date.getDay() === 6;
+  disabledDatesJalali = ['1403/09/01', '1403/09/15', '1403/10/01', new Date(2024, 8, 15), new Date(2024, 11, 25), new Date()];
+  disabledDatesFilterJalali = (date: Date) => this.jalali.getYear(date) === 1407 || this.jalali.getMonth(date) === 0 || this.jalali.getMonth(date) === 1;
+  disabledDatesFilterMonth = (date: Date) => date.getMonth() % 2 === 0;
+  disabledDatesFilterYear = (date: Date) => {
+    const yearRange: number[] = [];
+    for (let i = 1; i <= 20; i++) yearRange.push(1996 + i);
+    return yearRange.includes(date.getFullYear()) || [2019, 2021, 2026, 2027, 2030].includes(date.getFullYear());
+  };
+  disabledDatesFilterCombined = (date: Date) => date.getDay() === 5;
+  disabledTimesFilter = (date: Date) => {
+    const hour = date.getHours();
+    const weekDay = date.getDay();
+    if (weekDay === 0 || weekDay === 6) return true;
+    return hour < 9 || hour >= 17;
+  };
 
-    // Jalali
-    disabledDatesJalali = [
-        '1403/09/01',
-        '1403/09/15',
-        '1403/10/01',
-        new Date(2024, 8, 15), // September 15, 2024
-        new Date(2024, 11, 25), // December 25, 2024
-        new Date() //today
-    ];
-    disabledDatesFilterJalali = (date: Date) => {
-        const year = this.jalali.getYear(date)
-        const month = this.jalali.getMonth(date);
-        // Disable 1407 year and every Farvardin (0) and Ordibehesht (1) months
-        return year == 1407 || month === 0 || month === 1;
-    };
+  constructor(private jalali: JalaliDateAdapter) {}
 
-    // Disabled month
-    disabledDatesFilterMonth = (date: Date) => {
-        const month = date.getMonth();
-        // Disables even months
-        return month % 2 === 0;
-    };
+  demoCode = `<qeydar-date-picker
+  [disabledDates]="disabledDates"
+  [disabledDatesFilter]="disabledDatesFilter"
+  [(ngModel)]="selectedDate"
+></qeydar-date-picker>
 
-    // Disabled Year
-    disabledDatesFilterYear = (date: Date) => {
-        const year = date.getFullYear();
-        let yearRange = []
-        for (let i = 1; i <= 20; i++) {
-            let startYear = 1996;
-            yearRange.push(startYear+i)
-        }
-        let entryYear = year == 2019 || year == 2021 || year == 2026 || year == 2027 || year == 2030;
-        return yearRange.includes(year) || entryYear;
-    };
-
-    // Combining Time Restrictions
-    disabledDatesFilterCombined = (date: Date) => {
-        const weekDay = date.getDay();
-        return weekDay === 5; // Disable Fridays
-    };
-    disabledTimesFilter = (date: Date) => {
-        const hour = date.getHours();
-        const weekDay = date.getDay();
-
-        // Disable:
-        // - Before 9 AM and after 5 PM on weekdays
-        // - All hours on weekends
-        if (weekDay === 0 || weekDay === 6) return true;
-        return hour < 9 || hour >= 17;
-    };
-    
-    /**
-     *
-     */
-    constructor(private jalali: JalaliDateAdapter) {
-    }
-
-    toggleCode(elm: HTMLDivElement) {
-        let display = elm.style.display;
-        if (display != 'block') {
-          elm.style.display = 'block';
-        } else {
-          elm.style.display = 'none';
-        }  
-    }
-
-    demoCode = `
-        @Component({
-        selector: 'disabled-dates',
-        template: \`
-            Gregorian:
-            <qeydar-date-picker
-                [(ngModel)]="selectedDate"
-                [disabledDates]="disabledDates"
-                [disabledDatesFilter]="disabledDatesFilter"
-            >
-            </qeydar-date-picker>
-            <br>
-            Jalali:
-            <qeydar-date-picker
-                dir="rtl"
-                [rtl]="true"
-                [calendarType]="'jalali'"
-                [disabledDates]="disabledDatesJalali"
-                [disabledDatesFilter]="disabledDatesFilterJalali"
-                [(ngModel)]="selectedDate"
-            >
-            </qeydar-date-picker>
-            <br>
-            Month:
-            <qeydar-date-picker
-                [(ngModel)]="selectedDate"
-                [mode]="'month'"
-                [disabledDatesFilter]="disabledDatesFilterMonth"
-            >
-            </qeydar-date-picker>
-            <br>
-            Year:
-            <qeydar-date-picker
-                [(ngModel)]="selectedDate"
-                [mode]="'year'"
-                [disabledDatesFilter]="disabledDatesFilterYear"
-            >
-            </qeydar-date-picker>
-            <br>
-            Combining with Time:
-            <qeydar-date-picker
-                [format]="'yyyy/MM/dd HH:mm'"
-                [disabledDatesFilter]="disabledDatesFilterCombined"
-                [disabledTimesFilter]="disabledTimesFilter"
-                [(ngModel)]="selectedDate"
-            >
-            </qeydar-date-picker>
-        \`,
-    })
-    export class DisabledDates {
-        selectedDate: Date | string;
-
-        // Basic
-        disabledDates = [
-            new Date(), // Disables current date
-            '2024/12/05',
-            '2024/12/07'
-        ];
-        disabledDatesFilter = (date: Date) => {
-            const day = date.getDay();
-            // weekends: Saturday (6) and Sunday (0)
-            return day === 0 || day === 6;
-        };
-
-        // Jalali
-        disabledDatesJalali = [
-            '1403/09/01',
-            '1403/09/15',
-            '1403/10/01',
-            new Date(2024, 8, 15), // September 15, 2024
-            new Date(2024, 11, 25), // December 25, 2024
-            new Date() //today
-        ];
-        disabledDatesFilterJalali = (date: Date) => {
-            const year = this.jalali.getYear(date)
-            const month = this.jalali.getMonth(date);
-            // Disable 1407 year and every Farvardin(0) and Ordibehesht(1)
-            return year == 1407 || month === 0 || month === 1;
-        };
-
-        // Disabled month
-        disabledDatesFilterMonth = (date: Date) => {
-            const month = date.getMonth();
-            // Disables even months
-            return month % 2 === 0;
-        };
-
-        // Disabled Year
-        disabledDatesFilterYear = (date: Date) => {
-            const year = date.getFullYear();
-            let yearRange = []
-            for (let i = 1; i <= 20; i++) {
-                let startYear = 1996;
-                yearRange.push(startYear+i)
-            }
-            let entryYear = year == 2019 || year == 2021 || year == 2026 || year == 2027 || year == 2030;
-            return yearRange.includes(year) || entryYear;
-        };
-
-        // Combining Time Restrictions
-        disabledDatesFilterCombined = (date: Date) => {
-            const weekDay = date.getDay();
-            return weekDay === 5; // Disable Fridays
-        };
-        disabledTimesFilter = (date: Date) => {
-            const hour = date.getHours();
-            const weekDay = date.getDay();
-
-            // Disable:
-            // - Before 9 AM and after 5 PM on weekdays
-            // - All hours on weekends
-            if (weekDay === 0 || weekDay === 6) return true;
-            return hour < 9 || hour >= 17;
-        };
-
-        constructor(private jalali: JalaliDateAdapter) {}
-    }
-    `;
+// Disable weekdays, months, years, or time ranges
+const disabledDatesFilter = (date: Date) => date.getDay() === 0 || date.getDay() === 6;
+const disabledTimesFilter = (date: Date) => date.getHours() < 9 || date.getHours() >= 17;`;
 }
