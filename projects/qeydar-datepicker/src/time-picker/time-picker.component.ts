@@ -10,7 +10,7 @@
  * - Min/Max time validation
  * - Custom styling
  */
-import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy, AfterViewInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CdkOverlayOrigin, ConnectedOverlayPositionChange, OverlayModule } from '@angular/cdk/overlay';
 import { slideMotion } from '../utils/animation/slide';
@@ -190,7 +190,7 @@ import { DateMaskDirective } from '../utils/input-mask.directive';
   },
   animations: [slideMotion]
 })
-export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges {
+export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges, AfterViewInit {
   @Input() placeholder?: string;
   @Input() rtl = false;
   @Input() placement: 'left' | 'right' = 'right';
@@ -275,7 +275,6 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   // Lifecycle hooks
   ngOnInit(): void {
     this.updateHourRange();
-    this.origin = new CdkOverlayOrigin(this.elementRef);
     this.setupInputSubscription();
     this.value = this.selectedDate;
 
@@ -294,6 +293,14 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   ngOnDestroy(): void {
     this.cleanupTimeouts();
     document.removeEventListener('click', this.handleDocumentClick);
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.inline && this.timePickerInput) {
+      this.origin = new CdkOverlayOrigin(this.timePickerInput);
+    } else if (this.inline) {
+      this.origin = new CdkOverlayOrigin(this.elementRef);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
