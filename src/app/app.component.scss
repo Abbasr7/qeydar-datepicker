@@ -709,8 +709,13 @@ select:focus {
 }
 
 .example-preview--slot {
-  padding: 0;
+  padding: 24px;
   background: transparent;
+}
+
+.slot-demos {
+  display: grid;
+  gap: 20px;
 }
 
 .hijri-feature {
@@ -838,7 +843,7 @@ select:focus {
   }
 
   .example-preview--slot {
-    padding: 0;
+    padding: 14px;
   }
 }
 

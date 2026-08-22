@@ -94,8 +94,10 @@ describe('DatePickerPopupComponent slots', () => {
     expect(context.validation.isDateDisabled(context.days[0])).toBeFalse();
     context.actions.selectDay(context.days[0]);
     fixture.detectChanges();
-    expect(fixture.componentInstance.selected?.getHours()).toBe(context.days[0].getHours());
-    expect(fixture.componentInstance.selected?.getMinutes()).toBe(context.days[0].getMinutes());
+    // Without a time picker the selected value keeps the clicked day's date
+    // (the library applies the current time, so only the date part is stable).
+    expect(fixture.componentInstance.selected?.getFullYear()).toBe(context.days[0].getFullYear());
+    expect(fixture.componentInstance.selected?.getMonth()).toBe(context.days[0].getMonth());
     expect(fixture.componentInstance.selected?.getDate()).toBe(context.days[0].getDate());
   });
 });

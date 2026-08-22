@@ -113,3 +113,135 @@ select {
 .range-labels input {
     max-width: 120px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Slot demos: popup chrome styles                                     */
+/* The picker popup is rendered inside the CDK overlay, so these      */
+/* styles must live in the global stylesheet (not a component style). */
+/* Each slot demo passes cssClass="slot-demo-popup" to the picker.    */
+/* ------------------------------------------------------------------ */
+.slot-demo-popup {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    border: 1px solid #e4e7ee;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 12px 24px rgba(36, 51, 85, 0.1);
+}
+
+.slot-demo-popup .date-picker-content {
+    display: block;
+    max-height: none;
+}
+
+.slot-demo-popup .calendar {
+    width: auto;
+    max-width: none;
+    padding: 12px;
+}
+
+.slot-demo-popup .header {
+    border: 0;
+    background: #f9fafc;
+    border-radius: 9px;
+}
+
+.slot-demo-popup .weekdays {
+    color: #98a1b2;
+    font-size: 10px;
+}
+
+.slot-demo-popup .days button,
+.slot-demo-popup .months button,
+.slot-demo-popup .years button {
+    min-height: 30px;
+    border-radius: 9px;
+    color: #374154;
+    font-size: 12px;
+}
+
+.slot-demo-popup .days button.selected,
+.slot-demo-popup .months button.selected,
+.slot-demo-popup .years button.selected {
+    background: #4468ef;
+    color: #fff;
+}
+
+/* Wheel popup keeps the calendar body transparent to the wheel */
+.slot-demo-popup.wheel-popup .calendar {
+    padding: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared layout for the three slot demos (quick / hero / wheel)       */
+/* ------------------------------------------------------------------ */
+.slot-demo {
+    color: #172238;
+    border: 1px solid #e3e8f1;
+    border-radius: 16px;
+    background: #fff;
+    padding: 22px;
+    box-shadow: 0 12px 26px rgba(34, 54, 94, 0.06);
+}
+
+.slot-demo-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.slot-demo-kicker {
+    color: #4d68e9;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.slot-demo h3 {
+    margin: 7px 0 5px;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+}
+
+.slot-demo-head p {
+    max-width: 560px;
+    margin: 0;
+    color: #6b7588;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.slot-demo-tag {
+    flex: 0 0 auto;
+    color: #a6afc0;
+    font-size: 11px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.1em;
+}
+
+.slot-demo-picker {
+    display: block;
+    width: 100%;
+}
+
+.slot-demo .selection-readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #f6f8fc;
+    color: #8b95a7;
+    font-size: 10px;
+}
+
+.slot-demo .selection-readout strong {
+    color: #34415b;
+    font-size: 11px;
+}

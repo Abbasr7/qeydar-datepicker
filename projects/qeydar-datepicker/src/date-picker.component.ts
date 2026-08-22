@@ -616,7 +616,6 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       this.form.get('dateInput')?.setValue(formattedDate, { emitEvent: false });
       this.emitValueIfChanged();
     }
-    this.close();
   }
 
   // ========== Date Range Methods ==========

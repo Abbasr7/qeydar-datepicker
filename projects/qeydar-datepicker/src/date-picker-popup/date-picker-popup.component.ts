@@ -301,7 +301,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   readonly confirmFn = (): void => this.onOkClick();
   readonly cancelFn = (): void => this.closeDatePicker();
   readonly todayFn = (): void => this.onTodayClick();
-  readonly selectDayFn = (date: Date): void => this.selectDate(date);
+  readonly selectDayFn = (date: Date, closeAfterSelection?: boolean): void => this.selectDate(date, closeAfterSelection);
   readonly selectMonthFn = (month: number): void => this.selectMonth(month, false);
   readonly selectYearFn = (year: number): void => this.selectYear(year);
   readonly goPrevFn = (): void => this.goPrev();
@@ -583,7 +583,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   // ========== Date Selection Methods ==========
-  selectDate(date: Date): void {
+  selectDate(date: Date, closeAfterSelection: boolean = true): void {
     if (this.isDateDisabled(date)) return;
 
     if (this.showTimePicker) {
@@ -604,6 +604,10 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       this.handleSingleSelection(date);
     }
     this.currentDate = date;
+
+    if (closeAfterSelection && !this.isRange) {
+      return this.closeDatePicker();
+    }
     this.cdr.markForCheck();
   }
 
@@ -649,7 +653,15 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (this.isMonthDisabled(month)) return;
 
     // Preserve the day when just navigating between modes; use day 1 only for mode finalization
-    const dayToUse = (this.mode === 'month' || closeAfterSelection) ? 1 : this.dateAdapter.getDate(this.currentDate);
+    let dayToUse = (this.mode === 'month' || closeAfterSelection) ? 1 : this.dateAdapter.getDate(this.currentDate);
+
+    // Adjust day if it exceeds the number of days in the target month
+    if (dayToUse > 1) {
+      const year = this.dateAdapter.getYear(this.currentDate);
+      const tempDate = this.dateAdapter.createDate(year, month - 1, 1);
+      const daysInTargetMonth = this.dateAdapter.getNumDaysInMonth(tempDate);
+      dayToUse = Math.min(dayToUse, daysInTargetMonth);
+    }
 
     // Create the new date and preserve existing time portion when available
     let newDate = this.dateAdapter.createDate(
@@ -686,8 +698,15 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (this.isYearDisabled(year)) return;
 
     // Preserve day and month when just navigating between modes
-    const dayToUse = this.mode === 'year' ? 1 : this.dateAdapter.getDate(this.currentDate);
+    let dayToUse = this.mode === 'year' ? 1 : this.dateAdapter.getDate(this.currentDate);
     const monthToUse = this.dateAdapter.getMonth(this.currentDate);
+
+    // Adjust day if it exceeds the number of days in the target month/year
+    if (dayToUse > 1) {
+      const tempDate = this.dateAdapter.createDate(year, monthToUse, 1);
+      const daysInTargetMonth = this.dateAdapter.getNumDaysInMonth(tempDate);
+      dayToUse = Math.min(dayToUse, daysInTargetMonth);
+    }
 
     // Create the new date and preserve existing time portion when available
     let newDate = this.dateAdapter.createDate(
@@ -1073,7 +1092,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate });
       this.closeDatePicker()
     } else {
-      this.dateSelected.emit(this.selectedDate);
+      this.selectDate(this.currentDate, true);
     }
   }
 

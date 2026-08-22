@@ -103,7 +103,7 @@ export interface BodyTemplateContext {
     isYearDisabled(year: number): boolean;
   };
   actions: {
-    selectDay(date: Date): void;
+    selectDay(date: Date, closeAfterSelection?: boolean): void;
     selectMonth(month: number): void;
     selectYear(year: number): void;
     goPrev(): void;
