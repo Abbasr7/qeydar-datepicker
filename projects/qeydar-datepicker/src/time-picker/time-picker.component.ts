@@ -12,7 +12,7 @@
  */
 import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy, AfterViewInit, ViewContainerRef, TemplateRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CdkOverlayOrigin, ConnectedOverlayPositionChange, OverlayModule } from '@angular/cdk/overlay';
+import { ConnectedOverlayPositionChange, OverlayModule } from '@angular/cdk/overlay';
 import { slideMotion } from '../utils/animation/slide';
 import { Lang_Locale } from '../utils/models';
 import { QeydarDatePickerService } from '../date-picker.service';
@@ -299,7 +299,9 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   };
   isOpen = false;
   form: FormGroup;
-  origin: CdkOverlayOrigin;
+  // CDK accepts ElementRef directly as an overlay origin. Using the wrapper
+  // class with `new` bypasses its DI-managed construction in newer Angular/CDK versions.
+  origin: ElementRef;
   overlayPositions = [...DEFAULT_DATE_PICKER_POSITIONS];
   private static nextModalId = 0;
   readonly modalTitleId = `qeydar-time-picker-modal-title-${TimePickerComponent.nextModalId++}`;
@@ -356,9 +358,9 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   ngAfterViewInit(): void {
     if (!this.inline && this.timePickerInput) {
-      this.origin = new CdkOverlayOrigin(this.timePickerInput);
+      this.origin = this.timePickerInput;
     } else if (this.inline) {
-      this.origin = new CdkOverlayOrigin(this.elementRef);
+      this.origin = this.elementRef;
     }
   }
 
