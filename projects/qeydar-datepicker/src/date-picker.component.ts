@@ -4,7 +4,7 @@ import { slideMotion } from './utils/animation/slide';
 import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter, DATE_ADAPTER, provideDateAdapter } from './date-adapter';
 import { CustomLabels, DateRange, Lang_Locale, RangeInputLabels } from './utils/models';
 import { DatePickerPopupComponent } from './date-picker-popup/date-picker-popup.component';
-import { CdkOverlayOrigin, ConnectedOverlayPositionChange, ConnectionPositionPair, HorizontalConnectionPos, OverlayModule, VerticalConnectionPos } from '@angular/cdk/overlay';
+import { ConnectedOverlayPositionChange, ConnectionPositionPair, HorizontalConnectionPos, OverlayModule, VerticalConnectionPos } from '@angular/cdk/overlay';
 import { DATE_PICKER_POSITION_MAP, DEFAULT_DATE_PICKER_POSITIONS, NzConnectedOverlayDirective } from './utils/overlay/overlay';
 import { DOCUMENT, NgIf, NgTemplateOutlet } from '@angular/common';
 import { DestroyService, QeydarDatePickerService } from './date-picker.service';
@@ -394,7 +394,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   @ContentChildren(CustomTemplate) templates!: QueryList<CustomTemplate>;
 
   // ========== Class Properties ==========
-  origin: CdkOverlayOrigin;
+  origin: ElementRef;
   overlayPositions: ConnectionPositionPair[] = [...DEFAULT_DATE_PICKER_POSITIONS];
   currentPositionX: HorizontalConnectionPos = 'start';
   currentPositionY: VerticalConnectionPos = 'bottom';
@@ -477,7 +477,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Initialization Methods ==========
   initializeComponent(doc: Document): void {
-    this.origin = new CdkOverlayOrigin(this.elementRef);
+    this.origin = this.elementRef;
     this.document = doc;
     this.form = this.fb.group({
       dateInput: [''],
@@ -566,7 +566,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       this.format = this.getFormatForMode();
     }
     if (changes['isRange'] && this.isRange ==  false) {
-      this.origin = new CdkOverlayOrigin(this.elementRef);
+      this.origin = this.elementRef;
     }
     if (changes['valueFormat']) {
       this.emitValueIfChanged();
@@ -1261,7 +1261,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
         this.activeInput = active;
         if (active) {
           if (!this.isOpen)
-            this.origin = new CdkOverlayOrigin(this.activeInput == 'start'? this.rangePickerInputs?.first: this.rangePickerInputs.last)
+            this.origin = this.activeInput == 'start'? this.rangePickerInputs?.first: this.rangePickerInputs.last
           this.focus();
         }
       });
