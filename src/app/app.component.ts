@@ -24,7 +24,7 @@ type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
   ],
 })
 export class AppComponent implements OnInit {
-  Version = '1.3.1';
+  Version = '1.3.2';
   isSidebarOpen = true;
   showPart: DemoPart = 'datepicker';
 
