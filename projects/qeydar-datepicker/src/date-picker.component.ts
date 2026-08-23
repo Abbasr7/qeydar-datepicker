@@ -1,4 +1,4 @@
-import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional, ViewContainerRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, AbstractControl, ValidationErrors, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { slideMotion } from './utils/animation/slide';
 import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter, DATE_ADAPTER, provideDateAdapter } from './date-adapter';
@@ -11,6 +11,11 @@ import { DestroyService, QeydarDatePickerService } from './date-picker.service';
 import { fromEvent, takeUntil } from 'rxjs';
 import { CalendarType, DatepickerMode, Placement, RangePartType, ValueFormat } from './utils/types';
 import { DateMaskDirective } from './utils/input-mask.directive';
+import { TemplatePortal } from '@angular/cdk/portal';
+import { A11yModule } from '@angular/cdk/a11y';
+import { PickerModalService } from './modal/picker-modal.service';
+import { PickerModalOptions, PickerPresentation } from './modal/picker-modal.types';
+import { PickerModalStylesComponent } from './modal/picker-modal-styles.component';
 import { CustomTemplate } from './utils/template.directive';
 
 @Component({
@@ -18,6 +23,7 @@ import { CustomTemplate } from './utils/template.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   template: `
+    <qeydar-picker-modal-styles></qeydar-picker-modal-styles>
     <div qeydarDatepickerStyles class="date-picker-wrapper" [class.date-picker-rtl]="rtl" [class.disabled]="disabled" [formGroup]="form">
       <ng-container *ngIf="!isInline; else inlineMode">
         <ng-container *ngIf="!isRange; else rangeMode">
@@ -95,7 +101,7 @@ import { CustomTemplate } from './utils/template.directive';
             </button>
         </ng-template>
       </ng-container>
-      <ng-template #inlineMode>
+      <ng-template #pickerContent>
         <div
           class="dp-dropdown"
           [class.qeydar-picker-dropdown-rtl]="rtl"
@@ -139,11 +145,43 @@ import { CustomTemplate } from './utils/template.directive';
           ></qeydar-date-picker-popup>
         </div>
       </ng-template>
+      <ng-template #inlineMode>
+        <ng-container *ngTemplateOutlet="pickerContent"></ng-container>
+      </ng-template>
+      <ng-template #modalContent>
+        <section
+          class="qeydar-picker-modal"
+          role="dialog"
+          aria-modal="true"
+          [attr.aria-labelledby]="modalTitleId"
+          [attr.dir]="rtl ? 'rtl' : 'ltr'"
+          tabindex="-1"
+          cdkTrapFocus
+        >
+          <span class="qeydar-picker-modal-handle" aria-hidden="true"></span>
+          <header class="qeydar-picker-modal-header" *ngIf="!modalOptions.hideHeader">
+            <h2 class="qeydar-picker-modal-title" [id]="modalTitleId">{{ getModalTitle() }}</h2>
+            <button
+              class="qeydar-picker-modal-close"
+              type="button"
+              [attr.aria-label]="lang.cancel"
+              (click)="close()"
+            >
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </header>
+          <div class="qeydar-picker-modal-body">
+            <ng-container *ngTemplateOutlet="pickerContent"></ng-container>
+          </div>
+        </section>
+      </ng-template>
       <ng-template
         cdkConnectedOverlay
         nzConnectedOverlay
         [cdkConnectedOverlayOrigin]="origin"
-        [cdkConnectedOverlayOpen]="isOpen"
+        [cdkConnectedOverlayOpen]="isOpen && !isModalPresentation"
         [cdkConnectedOverlayPositions]="overlayPositions"
         [cdkConnectedOverlayTransformOriginOn]="'.qeydar-picker-wrapper'"
         [cdkConnectedOverlayHasBackdrop]="false"
@@ -269,13 +307,16 @@ import { CustomTemplate } from './utils/template.directive';
     ReactiveFormsModule,
     OverlayModule,
     NgTemplateOutlet,
+    A11yModule,
     NzConnectedOverlayDirective,
     DateMaskDirective,
-    DatePickerPopupComponent
+    DatePickerPopupComponent,
+    PickerModalStylesComponent
   ],
   providers: [
     DestroyService,
     QeydarDatePickerService,
+    PickerModalService,
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => DatePickerComponent),
@@ -299,6 +340,8 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   @Input() placement: Placement = 'bottomRight';
   @Input() disabled = false;
   @Input() isInline = false;
+  @Input() presentation: PickerPresentation = 'popover';
+  @Input() modalOptions: PickerModalOptions = {};
   @Input() showSidebar = true;
   @Input() showToday = false;
   @Input() valueFormat: ValueFormat = 'gregorian';
@@ -345,6 +388,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== ViewChild/ViewChildren/ContentChildren Properties ==========
   @ViewChild('datePickerInput') datePickerInput: ElementRef;
+  @ViewChild('modalContent') modalContent: TemplateRef<unknown>;
   @ViewChildren('rangePickerInput') rangePickerInputs?: QueryList<ElementRef<HTMLInputElement>>;
   @ViewChild(DatePickerPopupComponent) datePickerPopup: DatePickerPopupComponent;
   @ContentChildren(CustomTemplate) templates!: QueryList<CustomTemplate>;
@@ -370,9 +414,18 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   timeDisplayFormat = 'HH:mm';
 
   documentClickListener: (event: MouseEvent) => void;
+  private static nextModalId = 0;
+  readonly modalTitleId = `qeydar-date-picker-modal-title-${DatePickerComponent.nextModalId++}`;
+  private suppressFocusOpen = false;
+  private suppressFocusTimer: ReturnType<typeof setTimeout> | null = null;
   private _minDate: any;
   private _maxDate: any;
   private _format = 'yyyy/MM/dd';
+  private _originalFormat = 'yyyy/MM/dd';
+
+  get isModalPresentation(): boolean {
+    return !this.isInline && this.presentation === 'modal';
+  }
 
   get valueAdapter() {
     return this.valueFormat == 'jalali'? this.jalali: this.gregorian;
@@ -388,6 +441,8 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     public ngZone: NgZone,
     public jalali: JalaliDateAdapter,
     public gregorian: GregorianDateAdapter,
+    private viewContainerRef: ViewContainerRef,
+    private pickerModal: PickerModalService,
     @Inject(DOCUMENT) doc: Document,
     @Optional() @Inject(DATE_ADAPTER) private injectedDateAdapter: DateAdapter<Date>
   ) {
@@ -397,6 +452,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   // ========== Lifecycle Hooks ==========
   ngOnInit(): void {
     this.initialize();
+    this.setupModalDismissal();
     document.addEventListener('click', this.documentClickListener);
   }
 
@@ -411,6 +467,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   ngOnDestroy(): void {
+    if (this.suppressFocusTimer !== null) {
+      clearTimeout(this.suppressFocusTimer);
+    }
     this.destroy$.next();
     this.destroy$.complete();
     document.removeEventListener('click', this.documentClickListener);
@@ -475,6 +534,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Event Handlers ==========
   handleChanges(changes: SimpleChanges): void {
+    if (changes['format']) {
+      this._originalFormat = changes['format'].currentValue;
+    }
     if (changes['calendarType']) {
       this.setDateAdapter();
       this.updateInputValue();
@@ -512,6 +574,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   handleDocumentClick(event: MouseEvent): void {
+    if (this.isModalPresentation) {
+      return;
+    }
     if (!this.elementRef.nativeElement.contains(event.target)) {
       if (this.isOpen) {
         this.close();
@@ -612,7 +677,6 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       this.form.get('dateInput')?.setValue(formattedDate, { emitEvent: false });
       this.emitValueIfChanged();
     }
-    this.close();
   }
 
   // ========== Date Range Methods ==========
@@ -636,27 +700,43 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== UI State Methods ==========
   close(): void {
-    if (this.isInline) {
+    if (this.isInline || !this.isOpen) {
       return;
     }
-    if (this.isOpen) {
-      this.isOpen = false;
-      this.onOpenChange.emit(false);
-      this.cdref.markForCheck();
+
+    if (this.pickerModal.isOpen && this.modalOptions.restoreFocus !== false) {
+      this.suppressRestoredFocus();
     }
+
+    this.isOpen = false;
+    this.pickerModal.close();
+    this.onOpenChange.emit(false);
+    this.cdref.markForCheck();
   }
 
   open(): void {
     if (this.isInline || this.isOpen || this.disabled || this.readOnly) {
       return;
     }
+
     this.isOpen = true;
     this.onOpenChange.emit(true);
-    this.focus();
+    if (this.isModalPresentation) {
+      this.pickerModal.open(
+        new TemplatePortal(this.modalContent, this.viewContainerRef),
+        this.modalOptions,
+        this.rtl
+      );
+    } else {
+      this.focus();
+    }
     this.cdref.markForCheck();
   }
 
   focus(): void {
+    if (this.isModalPresentation) {
+      return;
+    }
     const activeInputElement = this.getInput(this.activeInput);
     if (this.document.activeElement !== activeInputElement) {
       activeInputElement?.focus();
@@ -845,7 +925,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       case 'month':
         return 'yyyy/MM';
       default:
-        return this.format;
+        return this._originalFormat;
     }
   }
 
@@ -869,6 +949,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Input Event Handlers ==========
   onFocusout(event: FocusEvent): void {
+    if (this.isModalPresentation) {
+      return;
+    }
     event.preventDefault();
     this.onTouch();
     if (
@@ -966,6 +1049,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   onFocusInput(inputType: 'start' | 'end' | null, event: Event): void {
+    if (this.suppressFocusOpen) {
+      return;
+    }
     if (this.hideStateHelper == false){
       this.toggleDatePicker(inputType, event);
       this.hideStateHelper = true
@@ -1124,6 +1210,50 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   // ========== Setup Methods ==========
+  setupModalDismissal(): void {
+    // Backdrop click / Escape / click on the pane padding -> the service asks, we decide.
+    this.pickerModal.closeRequested$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.close();
+        this.onTouch();
+      });
+
+    // Fired after the leave animation AND after focus was restored to the trigger.
+    this.pickerModal.closed$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.releaseFocusGuard());
+  }
+
+  /**
+   * Guards against the modal instantly re-opening: when the overlay closes it
+   * restores focus to the trigger input, whose (focus) handler would call open()
+   * again. The guard is released only after PickerModalService.closed$ fired
+   * (i.e. after focus was already restored), with a timer as a safety net.
+   */
+  suppressRestoredFocus(): void {
+    this.suppressFocusOpen = true;
+    if (this.suppressFocusTimer !== null) {
+      clearTimeout(this.suppressFocusTimer);
+    }
+    this.suppressFocusTimer = setTimeout(() => this.releaseFocusGuard(), 600);
+  }
+
+  releaseFocusGuard(): void {
+    if (this.suppressFocusTimer !== null) {
+      clearTimeout(this.suppressFocusTimer);
+      this.suppressFocusTimer = null;
+    }
+    // Let the restored focus event settle before accepting focus-to-open again.
+    setTimeout(() => {
+      this.suppressFocusOpen = false;
+    });
+  }
+
+  getModalTitle(): string {
+    return this.isRange ? this.lang.selectDateRange : this.getPlaceholder();
+  }
+
   setupActiveInputSubscription(): void {
     this.dpService.activeInput$
       .pipe(takeUntil(this.destroy$))

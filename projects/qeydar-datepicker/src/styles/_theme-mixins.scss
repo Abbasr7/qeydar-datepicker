@@ -1,0 +1,248 @@
+/**
+ * Qeydar DatePicker Theme Mixins
+ * Reusable SCSS mixins for theming
+ */
+
+// Apply theme-aware color
+@mixin theme-color($property, $color-var, $fallback: null) {
+  @if $fallback {
+    #{$property}: $fallback;
+    #{$property}: var($color-var, $fallback);
+  } @else {
+    #{$property}: var($color-var);
+  }
+}
+
+// Theme-aware background
+@mixin theme-background($bg-var: --qeydar-background-color) {
+  background-color: var($bg-var);
+}
+
+// Theme-aware text color
+@mixin theme-text($text-var: --qeydar-text-color) {
+  color: var($text-var);
+}
+
+// Theme-aware border
+@mixin theme-border($width: 1px, $style: solid, $color-var: --qeydar-border-color) {
+  border: $width $style var($color-var);
+}
+
+// Theme-aware shadow
+@mixin theme-shadow($shadow-var: --qeydar-shadow) {
+  box-shadow: var($shadow-var);
+}
+
+// Theme-aware hover state
+@mixin theme-hover {
+  &:hover:not(:disabled):not(.disabled) {
+    background-color: var(--qeydar-background-color-hover);
+    border-color: var(--qeydar-border-color-hover);
+    transition: var(--qeydar-transition-fast);
+  }
+}
+
+// Theme-aware active state
+@mixin theme-active {
+  &:active:not(:disabled):not(.disabled),
+  &.active {
+    background-color: var(--qeydar-background-color-active);
+    border-color: var(--qeydar-primary-active);
+    color: var(--qeydar-primary-color);
+  }
+}
+
+// Theme-aware disabled state
+@mixin theme-disabled {
+  &:disabled,
+  &.disabled {
+    background-color: var(--qeydar-background-color-disabled);
+    border-color: var(--qeydar-border-color-disabled);
+    color: var(--qeydar-text-color-disabled);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+// Theme-aware focus state
+@mixin theme-focus {
+  &:focus:not(:disabled):not(.disabled),
+  &.focus {
+    border-color: var(--qeydar-border-color-focus);
+    box-shadow: var(--qeydar-shadow-focus);
+    outline: none;
+  }
+}
+
+// Complete interactive states
+@mixin theme-interactive {
+  @include theme-hover;
+  @include theme-active;
+  @include theme-disabled;
+  @include theme-focus;
+}
+
+// Calendar cell theming
+@mixin calendar-cell {
+  width: var(--qeydar-calendar-cell-size);
+  height: var(--qeydar-calendar-cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--qeydar-border-radius-small);
+  cursor: pointer;
+  transition: var(--qeydar-transition-fast);
+  color: var(--qeydar-text-color);
+  
+  &:hover:not(.disabled):not(.selected) {
+    background-color: var(--qeydar-calendar-cell-hover);
+  }
+  
+  &.selected {
+    background-color: var(--qeydar-calendar-cell-selected);
+    color: var(--qeydar-text-color-inverse);
+  }
+  
+  &.today {
+    border: 1px solid var(--qeydar-calendar-cell-today);
+  }
+  
+  &.disabled {
+    background-color: var(--qeydar-calendar-cell-disabled);
+    color: var(--qeydar-text-color-disabled);
+    cursor: not-allowed;
+  }
+  
+  &.in-range {
+    background-color: var(--qeydar-calendar-cell-in-range);
+  }
+}
+
+// Input theming
+@mixin themed-input {
+  height: var(--qeydar-input-height);
+  padding: var(--qeydar-input-padding);
+  font-size: var(--qeydar-font-size);
+  line-height: var(--qeydar-line-height);
+  color: var(--qeydar-text-color);
+  background-color: var(--qeydar-background-color);
+  border: 1px solid var(--qeydar-border-color);
+  border-radius: var(--qeydar-border-radius);
+  transition: var(--qeydar-transition);
+  
+  @include theme-interactive;
+  
+  &::placeholder {
+    color: var(--qeydar-text-color-secondary);
+  }
+}
+
+// Button theming
+@mixin themed-button($type: 'default') {
+  padding: var(--qeydar-padding);
+  font-size: var(--qeydar-font-size);
+  border-radius: var(--qeydar-border-radius);
+  cursor: pointer;
+  transition: var(--qeydar-transition);
+  
+  @if $type == 'primary' {
+    background-color: var(--qeydar-primary-color);
+    border-color: var(--qeydar-primary-color);
+    color: var(--qeydar-text-color-inverse);
+    
+    &:hover:not(:disabled) {
+      background-color: var(--qeydar-primary-hover);
+      border-color: var(--qeydar-primary-hover);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: var(--qeydar-primary-active);
+      border-color: var(--qeydar-primary-active);
+    }
+  } @else {
+    background-color: var(--qeydar-background-color);
+    border: 1px solid var(--qeydar-border-color);
+    color: var(--qeydar-text-color);
+    
+    @include theme-interactive;
+  }
+}
+
+// Dropdown/Popup theming
+@mixin themed-dropdown {
+  background-color: var(--qeydar-background-color);
+  border: 1px solid var(--qeydar-border-color);
+  border-radius: var(--qeydar-border-radius);
+  box-shadow: var(--qeydar-shadow);
+  padding: var(--qeydar-padding-small);
+  z-index: var(--qeydar-z-index-dropdown);
+}
+
+// Card/Panel theming
+@mixin themed-card {
+  background-color: var(--qeydar-background-color);
+  border: 1px solid var(--qeydar-border-color);
+  border-radius: var(--qeydar-border-radius);
+  padding: var(--qeydar-padding);
+  box-shadow: var(--qeydar-shadow);
+}
+
+// Responsive font size
+@mixin responsive-font($min-size, $max-size, $min-width: 320px, $max-width: 1200px) {
+  font-size: calc(#{$min-size} + (#{$max-size} - #{$min-size}) * ((100vw - #{$min-width}) / (#{$max-width} - #{$min-width})));
+  
+  @media (max-width: $min-width) {
+    font-size: $min-size;
+  }
+  
+  @media (min-width: $max-width) {
+    font-size: $max-size;
+  }
+}
+
+// RTL Support
+@mixin rtl {
+  [dir="rtl"] &,
+  .qeydar-datepicker-rtl & {
+    @content;
+  }
+}
+
+// Dark theme specific styles
+@mixin dark-theme {
+  .qeydar-theme-dark &,
+  [data-qeydar-theme="dark"] & {
+    @content;
+  }
+}
+
+// Light theme specific styles
+@mixin light-theme {
+  .qeydar-theme-light &,
+  [data-qeydar-theme="light"] & {
+    @content;
+  }
+}
+
+// Scrollbar theming
+@mixin themed-scrollbar($width: 6px) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--qeydar-background-color-light);
+    border-radius: var(--qeydar-border-radius-small);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--qeydar-border-color);
+    border-radius: var(--qeydar-border-radius-small);
+    
+    &:hover {
+      background: var(--qeydar-border-color-hover);
+    }
+  }
+}
+

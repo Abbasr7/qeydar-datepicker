@@ -127,7 +127,7 @@ export class SelectionStrategyService {
         selectedStartDate: finalDate,
         selectedEndDate: null,
         shouldEmit: true,
-        activeInput: 'end',
+        activeInput: showTimePicker ? 'start' : 'end',
       };
     } else {
       return {
