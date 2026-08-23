@@ -40,7 +40,6 @@ import { BodyTemplateContext, FooterTemplateContext } from 'projects/qeydar-date
           [valueFormat]="'date'"
           [showSidebar]="false"
           [(ngModel)]="selectedDate"
-          [presentation]="'modal'"
         >
           <ng-template qeydarTemplate="header" let-context>
             <!-- {{ sync(context) }} -->
