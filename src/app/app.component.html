@@ -332,6 +332,13 @@
                       <span class="sr-only">Toggle range selection</span>
                     </label>
                   </div>
+                  <div class="form-group">
+                    <label for="date-presentation">Presentation</label>
+                    <select id="date-presentation" [(ngModel)]="presentation" (ngModelChange)="updateCode()">
+                      <option value="popover">Popover</option>
+                      <option value="modal">Modal</option>
+                    </select>
+                  </div>
                   <div class="switch-field">
                     <span>Inline mode</span
                     ><label class="switch" for="date-inline"
@@ -459,6 +466,7 @@
                 [allowEmpty]="allowEmpty"
                 [readOnly]="readOnly"
                 [readOnlyInput]="readOnlyInput"
+                [presentation]="presentation"
                 [(ngModel)]="selectedDate"
                 (ngModelChange)="onChange($event)"
               ></qeydar-date-picker>

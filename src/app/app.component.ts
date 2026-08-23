@@ -1,6 +1,6 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
-import { CalendarType, DATE_ADAPTER, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
+import { CalendarType, DATE_ADAPTER, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, PickerPresentation, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
 
 type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
 
@@ -44,6 +44,7 @@ export class AppComponent implements OnInit {
   valueFormat: ValueFormat = 'jalali';
   showToday = false;
   isInline = false;
+  presentation: PickerPresentation = 'popover';
   maxDate: Date | string;
   minDate: Date | string;
   showIcon = true;
@@ -109,6 +110,7 @@ export class AppComponent implements OnInit {
   [showToday]="showToday"
   [showSidebar]="showSidebar"
   [isInline]="isInline"
+  [presentation]="presentation"
   [allowEmpty]="allowEmpty"
   [disabled]="disabled"
   [readOnly]="readOnly"
@@ -117,7 +119,7 @@ export class AppComponent implements OnInit {
 ></qeydar-date-picker>`;
 
     this.demoTsCode = `import { Component } from '@angular/core';
-import { CalendarType, DatepickerMode, ValueFormat } from '@qeydar/datepicker';
+import { CalendarType, DatepickerMode, PickerPresentation, ValueFormat } from '@qeydar/datepicker';
 
 @Component({
   selector: 'app-date-example',
@@ -135,6 +137,7 @@ export class DateExampleComponent {
   showToday = ${this.showToday};
   showSidebar = ${this.showSidebar};
   isInline = ${this.isInline};
+  presentation: PickerPresentation = '${this.presentation}';
   allowEmpty = ${this.allowEmpty};
   disabled = ${this.disabled};
   readOnly = ${this.readOnly};
@@ -151,6 +154,7 @@ export class DateExampleComponent {
   [minTime]="minTime"
   [maxTime]="maxTime"
   [inline]="isInline"
+  [presentation]="presentation"
   [disabled]="disabled"
   [readOnly]="readOnly"
   [readOnlyInput]="readOnlyInput"
@@ -158,7 +162,7 @@ export class DateExampleComponent {
 ></qeydar-time-picker>`;
 
     this.demoTsCode = `import { Component } from '@angular/core';
-import { TimeValueType } from '@qeydar/datepicker';
+import { PickerPresentation, TimeValueType } from '@qeydar/datepicker';
 
 @Component({
   selector: 'app-time-example',
@@ -174,6 +178,7 @@ export class TimeExampleComponent {
   minTime = ${this.toCodeValue(this.minTime)};
   maxTime = ${this.toCodeValue(this.maxTime)};
   isInline = ${this.isInline};
+  presentation: PickerPresentation = '${this.presentation}';
   disabled = ${this.disabled};
   readOnly = ${this.readOnly};
   readOnlyInput = ${this.readOnlyInput};

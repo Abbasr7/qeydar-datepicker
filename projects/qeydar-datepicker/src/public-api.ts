@@ -35,6 +35,7 @@ export * from './date-adapter';
 // Types
 export * from './utils/types';
 export * from './utils/template-contexts';
+export * from './modal/picker-modal.types';
 export * from './date-picker-popup/services/calendar-utils.service';
 export * from './date-picker-popup/services/selection-strategy.service';
 export * from './date-picker-popup/services/validation-strategy.service';
