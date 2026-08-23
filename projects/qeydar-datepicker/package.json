@@ -25,13 +25,13 @@
     "@angular/core": ">=14.0.0",
     "@angular/forms": ">=14.0.0",
     "@angular/cdk": ">=14.0.0",
-    "date-fns": "^4.1.0",
-    "date-fns-jalali": "^4.1.0-0"
+    "date-fns": ">=4.1.0",
+    "date-fns-jalali": ">=4.1.0-0"
   },
   "dependencies": {
     "tslib": "^2.3.0",
-    "date-fns": "^4.1.0",
-    "date-fns-jalali": "^4.1.0-0"
+    "date-fns": ">=4.1.0",
+    "date-fns-jalali": ">=4.1.0-0"
   },
   "scripts": {
     "ng": "ng",
