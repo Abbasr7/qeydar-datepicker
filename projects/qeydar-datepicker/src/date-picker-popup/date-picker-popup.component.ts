@@ -108,7 +108,7 @@ import {
               [isToday]="isTodayFn"
               [isDateDisabled]="isDateDisabledFn"
               [getDayNumber]="getDayNumberFn"
-              (selectDay)="selectDate($event)"
+              (selectDay)="selectDate($event, !showTimePicker && !isRange)"
               (mouseEnter)="onMouseEnter($event, $any(null))"
             ></qeydar-days-grid>
 
@@ -298,7 +298,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   readonly nextFn = (): void => this.goNext();
   readonly showMonthsFn = (): void => this.showMonthSelector();
   readonly showYearsFn = (): void => this.showYearSelector();
-  readonly confirmFn = (): void => this.onOkClick();
+  readonly confirmFn = (date?: Date): void => this.onOkClick();
   readonly cancelFn = (): void => this.closeDatePicker();
   readonly todayFn = (): void => this.onTodayClick();
   readonly selectDayFn = (date: Date, closeAfterSelection?: boolean): void => this.selectDate(date, closeAfterSelection);
@@ -584,7 +584,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   // ========== Date Selection Methods ==========
-  selectDate(date: Date, closeAfterSelection: boolean = true): void {
+  selectDate(date: Date, closeAfterSelection: boolean = false): void {
     if (this.isDateDisabled(date)) return;
 
     if (this.showTimePicker) {
@@ -606,9 +606,10 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     }
     this.currentDate = date;
 
-    if (closeAfterSelection && !this.isRange) {
+    if (closeAfterSelection) {
       return this.closeDatePicker();
     }
+
     this.cdr.markForCheck();
   }
 
@@ -1088,12 +1089,13 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     this.cdr.detectChanges();
   }
 
-  onOkClick() {
+  onOkClick(date?: Date) {
     if (this.isRange) {
       this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate });
-      this.closeDatePicker()
+      this.closeDatePicker();
     } else {
-      this.selectDate(this.currentDate, true);
+      this.dateSelected.emit(date || this.selectedDate);
+      this.closeDatePicker();
     }
   }
 

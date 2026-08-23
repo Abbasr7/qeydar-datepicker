@@ -77,7 +77,7 @@ export interface FooterTemplateContext {
   selectedEndDate: Date | null;
   isRange: boolean;
   showTimePicker: boolean;
-  confirm: () => void;
+  confirm: (date?: Date) => void;
   cancel: () => void;
   today: () => void;
 }

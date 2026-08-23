@@ -211,6 +211,13 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="date-presentation">Presentation</label>
+                    <select id="date-presentation" [(ngModel)]="presentation" (ngModelChange)="updateCode()">
+                      <option value="popover">Popover</option>
+                      <option value="modal">Modal</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
                     <label for="date-format">Display format</label>
                     <input
                       id="date-format"
@@ -331,13 +338,6 @@
                       <span class="switch-track" aria-hidden="true"></span>
                       <span class="sr-only">Toggle range selection</span>
                     </label>
-                  </div>
-                  <div class="form-group">
-                    <label for="date-presentation">Presentation</label>
-                    <select id="date-presentation" [(ngModel)]="presentation" (ngModelChange)="updateCode()">
-                      <option value="popover">Popover</option>
-                      <option value="modal">Modal</option>
-                    </select>
                   </div>
                   <div class="switch-field">
                     <span>Inline mode</span
@@ -606,6 +606,13 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="date-presentation">Presentation</label>
+                    <select id="date-presentation" [(ngModel)]="presentation" (ngModelChange)="updateCode()">
+                      <option value="popover">Popover</option>
+                      <option value="modal">Modal</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
                     <label for="time-display-format">Display format</label
                     ><input
                       id="time-display-format"
@@ -753,6 +760,7 @@
                 [disabled]="disabled"
                 [readOnly]="readOnly"
                 [readOnlyInput]="readOnlyInput"
+                [presentation]="presentation"
                 [(ngModel)]="selectedTime"
                 (ngModelChange)="onChange($event)"
               ></qeydar-time-picker>
