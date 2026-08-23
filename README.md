@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://www.npmjs.com/package/@qeydar/datepicker" target="_blank">
-    <img src="https://img.shields.io/badge/Npm-v1.1.4-orange" alt="NPM Version" />
+    <img src="https://img.shields.io/badge/Npm-v1.3.0-orange" alt="NPM Version" />
   </a>
   <img src="https://img.shields.io/badge/Angular-%E2%89%A514.0.0-red" alt="Angular Version" />
 </div>
@@ -16,6 +16,16 @@ This package supports Angular 14 and above. Specific version compatibility:
 
 ## Demo
 You can see the online [Demo](https://qeydar-datepicker-git-master-abbasr7s-projects.vercel.app/)
+
+## Guides
+
+In-depth guides for advanced features:
+
+| Topic | Description |
+| ----- | ----------- |
+| [Custom Templates](./projects/qeydar-datepicker/CUSTOM_TEMPLATES.md) | Override day/month/year cells and headless regions (toolbar, header, footer, body) with `qeydarTemplate`. |
+| [Modal Presentation](./projects/qeydar-datepicker/MODAL_MODE.md) | Open pickers as a centered dialog with backdrop, focus trap, animations, and mobile bottom sheet. |
+| [Custom Adapters](./projects/qeydar-datepicker/CUSTOM_ADAPTERS.md) | Implement any calendar system (Jalali, Hijri, …) via a `DateAdapter`. |
 
 ## Components
 
@@ -43,6 +53,8 @@ This package includes two main components:
 - 🎯 Today button support
 - 🚫 Disabled dates support with custom filtering
 - 🎨 Custom templates for days, months, and years
+- 🧩 Headless templates for toolbar, header, footer, and the whole calendar body
+- 🪟 Modal/dialog presentation with backdrop, focus trap, animations & mobile bottom sheet
 - 🔒 Read-only mode support
 
 ### TimePicker
@@ -53,6 +65,7 @@ This package includes two main components:
 - 🎭 Time input mask
 - 🌐 Multilingual AM/PM
 - 📍 Inline display mode
+- 🪟 Modal/dialog presentation (shared with DatePicker)
 - 🔄 Date adapter integration
 - 🚫 Disabled times support with custom filtering
 
@@ -242,35 +255,33 @@ export class AppComponent {
 
 ### Custom Templates
 
-The DatePicker now supports custom templates for days, months, and years, allowing you to customize how these elements are rendered:
+The DatePicker supports fully customizable templates. You can override individual **cells** (`day`, `month`, `year`) or take over whole **regions** of the popup (`toolbar`, `header`, `footer`, `body`) using the `qeydarTemplate` directive — while keeping all the picker's date logic, range selection, validation, and form integration intact.
+
+> 📖 For the complete guide — every context field, real-world examples (event indicators, Jalali holidays, quick-range toolbar, wheel-picker body), TypeScript types, and styling tips — see **[CUSTOM_TEMPLATES.md](./projects/qeydar-datepicker/CUSTOM_TEMPLATES.md)**.
+
+**Cell templates** replace the content *inside* each grid button (state classes like `.selected`, `.in-range`, `.disabled` still apply to the button wrapper):
 
 ```typescript
 @Component({
   template: `
     <qeydar-date-picker [(ngModel)]="selectedDate">
-      <!-- Custom day template -->
-      <ng-template qeydarTemplate="day" let-day>
-        <div class="custom-day">
+      <!-- Custom day template: receives a typed DayTemplateContext -->
+      <ng-template qeydarTemplate="day" let-day let-isSelected="isSelected" let-isToday="isToday">
+        <span [class.my-today]="isToday">
           {{ day.getDate() }}
-          <!-- Add custom indicators or styling -->
           <span *ngIf="isSpecialDay(day)" class="special-indicator">*</span>
-        </div>
+        </span>
       </ng-template>
 
-      <!-- Custom month template -->
-      <ng-template qeydarTemplate="month" let-month>
-        <div class="custom-month">
-          {{ getMonthName(month) }}
-          <!-- Add custom content -->
-        </div>
+      <!-- Custom month template: receives MonthTemplateContext -->
+      <ng-template qeydarTemplate="month" let-name let-month="month" let-isDisabled="isDisabled">
+        <span [class.my-muted]="isDisabled">{{ name }}</span>
       </ng-template>
 
-      <!-- Custom year template -->
-      <ng-template qeydarTemplate="year" let-year>
-        <div class="custom-year">
-          {{ year }}
-          <!-- Add custom styling or indicators -->
-        </div>
+      <!-- Custom year template: receives YearTemplateContext -->
+      <ng-template qeydarTemplate="year" let-year let-isSelected="isSelected">
+        <strong *ngIf="isSelected; else plain">{{ year }}</strong>
+        <ng-template #plain>{{ year }}</ng-template>
       </ng-template>
     </qeydar-date-picker>
   `,
@@ -283,40 +294,45 @@ export class AppComponent {
 }
 ```
 
-### Slot Templates
+### Slot Templates (Headless Regions)
 
-The existing `day`, `month`, and `year` templates remain compatible. The popup also supports optional headless slots through the same directive:
-
-- `toolbar`: rendered above the calendar header.
-- `header`: replaces the built-in calendar header.
-- `body`: replaces all day/month/year grid components, so a custom wheel picker can render all columns itself.
-- `footer`: replaces the built-in footer.
+**Headless slots** replace entire regions of the popup and hand you callback functions wired into the picker's real state machine. `body` is an escape hatch — when it is present, the default day/month/year grids are **not** created, so you must render every column yourself:
 
 ```html
 <qeydar-date-picker [(ngModel)]="selectedDate">
-  <ng-template qeydarTemplate="toolbar" let-context>
-    <button type="button" (click)="context.selectQuickDate(today)">Today</button>
+  <!-- Toolbar: quick actions rendered above the header -->
+  <ng-template qeydarTemplate="toolbar" let-ctx>
+    <button type="button" (click)="ctx.selectQuickDate(today)">Today</button>
   </ng-template>
 
-  <ng-template qeydarTemplate="body" let-context>
-    <div class="wheel-picker">
+  <!-- Header: replaces the prev/next/title row -->
+  <ng-template qeydarTemplate="header" let-ctx>
+    <button type="button" (click)="ctx.prev()" [disabled]="ctx.prevDisabled">‹</button>
+    <span (click)="ctx.showMonths()">{{ ctx.currentMonthName }} {{ ctx.currentYear }}</span>
+    <button type="button" (click)="ctx.next()" [disabled]="ctx.nextDisabled">›</button>
+  </ng-template>
+
+  <!-- Body: replace all day/month/year grids (escape hatch) -->
+  <ng-template qeydarTemplate="body" let-ctx>
+    <div class="my-grid">
       <button
         type="button"
-        *ngFor="let day of context.days"
-        [disabled]="context.validation.isDateDisabled(day)"
-        (click)="context.actions.selectDay(day)"
+        *ngFor="let day of ctx.days"
+        [disabled]="ctx.validation.isDateDisabled(day)"
+        (click)="ctx.actions.selectDay(day)"
       >{{ day.getDate() }}</button>
     </div>
   </ng-template>
 
-  <ng-template qeydarTemplate="footer" let-context>
-    <button type="button" (click)="context.cancel()">Cancel</button>
-    <button type="button" (click)="context.confirm()">OK</button>
+  <!-- Footer: replaces the description/today/OK row -->
+  <ng-template qeydarTemplate="footer" let-ctx>
+    <button type="button" (click)="ctx.today()">Today</button>
+    <button type="button" (click)="ctx.confirm()">OK</button>
   </ng-template>
 </qeydar-date-picker>
 ```
 
-`body` is an escape hatch for a fully custom calendar body; when it is present, the default day, month, and year grids are not created. Slot actions delegate to the existing calendar, selection, and validation services. The slot interfaces are exported from the package for TypeScript consumers.
+Each slot exposes a typed context (`ToolbarTemplateContext`, `HeaderTemplateContext`, `BodyTemplateContext`, `FooterTemplateContext`) with bound action callbacks. The legacy selector `<ng-template Template="day">` still works for backward compatibility. See **[CUSTOM_TEMPLATES.md](./projects/qeydar-datepicker/CUSTOM_TEMPLATES.md)** for the full context reference.
 
 ### Read-only Mode
 
@@ -426,6 +442,58 @@ export class AppComponent {
 ### Custom Adapters
 For details on implementing custom adapters, see the [CUSTOM_ADAPTERS.md](./projects/qeydar-datepicker/CUSTOM_ADAPTERS.md) guide.
 
+## Modal Presentation
+
+Both the DatePicker and TimePicker can open in a centered **modal dialog** (with a dimmed backdrop, focus trap, Escape/backdrop-to-close, animations, and an automatic mobile bottom sheet) instead of the default popover. Just set `presentation` to `'modal'`:
+
+```html
+<!-- DatePicker as a modal -->
+<qeydar-date-picker
+  [(ngModel)]="value"
+  [calendarType]="'jalali'"
+  [presentation]="'modal'"
+></qeydar-date-picker>
+
+<!-- TimePicker as a modal -->
+<qeydar-time-picker
+  [(ngModel)]="time"
+  [presentation]="'modal'"
+  [modalOptions]="{ animation: 'slide-up', hideHeader: true }"
+></qeydar-time-picker>
+```
+
+Fine-tune the dialog with `modalOptions`:
+
+```typescript
+modalOptions: PickerModalOptions = {
+  animation: 'zoom',          // 'zoom' | 'slide-up' | 'fade'
+  hasBackdrop: true,
+  closeOnEscape: true,
+  closeOnBackdropClick: true,
+  restoreFocus: true,
+  hideHeader: false,
+  mobileSheet: true,          // dock to bottom as a sheet on < 480px screens
+  panelClass: 'my-brand-modal',
+  backdropClass: 'my-backdrop',
+};
+```
+
+| `modalOptions`         | Type                                 | Default  | Description                                                |
+| ---------------------- | ------------------------------------ | -------- | ---------------------------------------------------------- |
+| `animation`            | `'zoom' \| 'slide-up' \| 'fade'`     | `'zoom'` | Entrance/exit animation (`'zoom'` becomes a sheet on mobile) |
+| `hasBackdrop`          | `boolean`                            | `true`   | Render the dimmed backdrop                                 |
+| `backdropClass`        | `string`                             | —        | Extra class on the backdrop element                        |
+| `panelClass`           | `string \| string[]`                 | —        | Extra class(es) on the overlay pane (scope custom styles)  |
+| `closeOnEscape`        | `boolean`                            | `true`   | Close on `Escape`                                          |
+| `closeOnBackdropClick` | `boolean`                            | `true`   | Close when the backdrop / dialog padding is clicked        |
+| `restoreFocus`         | `boolean`                            | `true`   | Restore focus to the trigger when the modal closes         |
+| `hideHeader`           | `boolean`                            | `false`  | Hide the modal title bar                                   |
+| `mobileSheet`          | `boolean`                            | `true`   | On viewports < 480px, dock to the bottom as a sheet        |
+
+The modal reuses the picker's `rtl` setting for direction and the `lang` config for the localized title, supports automatic dark mode, and is fully composable with custom templates (e.g. a modal with a custom footer).
+
+> 📖 For the complete guide — animations, mobile bottom sheet, RTL, theming CSS variables, accessibility, and combining modal + custom templates — see **[MODAL_MODE.md](./projects/qeydar-datepicker/MODAL_MODE.md)**.
+
 ## API Reference
 
 ### DatePicker Inputs
@@ -446,11 +514,13 @@ For details on implementing custom adapters, see the [CUSTOM_ADAPTERS.md](./proj
 | placement           | Placement                         | 'bottomLeft' | Dropdown placement                                         |
 | disabled            | boolean                           | false        | Disable the datepicker                                     |
 | isInline            | boolean                           | false        | Show calendar inline                                       |
+| presentation        | 'popover' \| 'modal'              | 'popover'    | Open as a popover (anchored) or a centered modal dialog     |
+| modalOptions        | PickerModalOptions                | {}           | Options for the modal dialog (see [Modal Presentation](#modal-presentation)) |
 | showSidebar         | boolean                           | true         | Show sidebar with months/years                             |
 | showToday           | boolean                           | false        | Highlight today's date                                     |
 | valueFormat         | 'gregorian' \| 'jalali' \| 'date' | 'gregorian'  | Output value format                                        |
 | disableInputMask    | boolean                           | false        | To disable input mask                                      |
-| disabledDates       | Arrar<Date                        |              | string>                                                    | undefined | Array of Date and string to disable the entire day |
+| disabledDates       | Array<Date \| string>             | []           | Array of Date/string values to disable the entire day      |
 | disabledDatesFilter | (date: Date) => boolean           | undefined    | Function to determine if a date should be disabled         |
 | disabledTimesFilter | (date: Date) => boolean           | undefined    | Function to determine if a time of date should be disabled |
 | allowEmpty          | boolean                           | true         | Allow empty value                                          |
@@ -480,6 +550,8 @@ For details on implementing custom adapters, see the [CUSTOM_ADAPTERS.md](./proj
 | rtl                 | boolean                 | false         | Right-to-left mode                                 |
 | lang                | Lang_Locale             | lang_En       | Language settings                                  |
 | inline              | boolean                 | false         | Show time picker inline (without popup)            |
+| presentation        | 'popover' \| 'modal'    | 'popover'     | Open as a popover (anchored) or a centered modal dialog |
+| modalOptions        | PickerModalOptions      | {}            | Options for the modal dialog (see [Modal Presentation](#modal-presentation)) |
 | dateAdapter         | DateAdapter<Date>       | undefined     | Custom date adapter for time manipulation          |
 | disableInputMask    | boolean                 | false         | To disable input mask                              |
 | disabledTimesFilter | (date: Date) => boolean | undefined     | Function to determine if a time should be disabled |
