@@ -112,14 +112,14 @@
   gap: 12px;
   flex: 0 0 auto;
   min-height: 52px;
-  padding: 10px 10px 10px 18px;
+  padding: 0px 10px 0px 18px;
   border-bottom: 1px solid var(--qpm-border, #e8eaed);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
 }
 
 [dir='rtl'] .qeydar-picker-modal-header,
 .qeydar-picker-modal[dir='rtl'] .qeydar-picker-modal-header {
-  padding: 10px 18px 10px 10px;
+  padding: 0px 18px 10px 0px;
 }
 
 .qeydar-picker-modal-title {

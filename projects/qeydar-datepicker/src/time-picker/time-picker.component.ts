@@ -25,12 +25,14 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { A11yModule } from '@angular/cdk/a11y';
 import { PickerModalService } from '../modal/picker-modal.service';
 import { PickerModalOptions, PickerPresentation } from '../modal/picker-modal.types';
+import { PickerModalStylesComponent } from '../modal/picker-modal-styles.component';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'qeydar-time-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <qeydar-picker-modal-styles></qeydar-picker-modal-styles>
     <div class="time-picker-wrapper" [formGroup]="form">
       <!-- Regular input mode -->
       <ng-container *ngIf="!inline">
@@ -211,7 +213,8 @@ import { Subscription } from 'rxjs';
     A11yModule,
     DateMaskDirective,
     OverlayModule,
-    NzConnectedOverlayDirective
+    NzConnectedOverlayDirective,
+    PickerModalStylesComponent
   ],
   providers: [
     QeydarDatePickerService,

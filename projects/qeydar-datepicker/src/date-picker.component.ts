@@ -15,6 +15,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { A11yModule } from '@angular/cdk/a11y';
 import { PickerModalService } from './modal/picker-modal.service';
 import { PickerModalOptions, PickerPresentation } from './modal/picker-modal.types';
+import { PickerModalStylesComponent } from './modal/picker-modal-styles.component';
 import { CustomTemplate } from './utils/template.directive';
 
 @Component({
@@ -22,6 +23,7 @@ import { CustomTemplate } from './utils/template.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   template: `
+    <qeydar-picker-modal-styles></qeydar-picker-modal-styles>
     <div qeydarDatepickerStyles class="date-picker-wrapper" [class.date-picker-rtl]="rtl" [class.disabled]="disabled" [formGroup]="form">
       <ng-container *ngIf="!isInline; else inlineMode">
         <ng-container *ngIf="!isRange; else rangeMode">
@@ -308,7 +310,8 @@ import { CustomTemplate } from './utils/template.directive';
     A11yModule,
     NzConnectedOverlayDirective,
     DateMaskDirective,
-    DatePickerPopupComponent
+    DatePickerPopupComponent,
+    PickerModalStylesComponent
   ],
   providers: [
     DestroyService,
