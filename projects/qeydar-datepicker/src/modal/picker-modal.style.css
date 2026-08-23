@@ -119,7 +119,7 @@
 
 [dir='rtl'] .qeydar-picker-modal-header,
 .qeydar-picker-modal[dir='rtl'] .qeydar-picker-modal-header {
-  padding: 0px 18px 10px 0px;
+  padding: 0px 18px 0px 10px;
 }
 
 .qeydar-picker-modal-title {
