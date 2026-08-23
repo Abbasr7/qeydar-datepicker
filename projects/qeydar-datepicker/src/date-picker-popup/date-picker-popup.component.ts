@@ -376,7 +376,8 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
         selectMonth: this.selectMonthFn,
         selectYear: this.selectYearFn,
         goPrev: this.goPrevFn,
-        goNext: this.goNextFn
+        goNext: this.goNextFn,
+        close: this.closeFn,
       },
       utils: {
         generateYearList: this.generateYearList.bind(this)

@@ -108,6 +108,7 @@ export interface BodyTemplateContext {
     selectYear(year: number): void;
     goPrev(): void;
     goNext(): void;
+    close(): void;
   };
   utils: {
     generateYearList(length: number): number[]
