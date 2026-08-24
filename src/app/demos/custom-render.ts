@@ -134,7 +134,7 @@ export class CustomRender {
 <qeydar-date-picker [(ngModel)]="selectedDate" [mode]="'month'">
   <ng-template qeydarTemplate="month" let-name="name" let-isSelected="isSelected">
     <div class="month-cell" [class.month-cell--selected]="isSelected">
-      {{ name }} <small *ngIf="isSelected">active</small>
+      {{ name }} @if (isSelected) {<small>active</small>}
     </div>
   </ng-template>
 </qeydar-date-picker>

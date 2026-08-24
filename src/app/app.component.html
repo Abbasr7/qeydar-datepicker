@@ -133,9 +133,9 @@
 
     <div class="page-wrap">
       <!-- Date picker -->
+      @if (showPart === 'datepicker') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'datepicker'"
         aria-labelledby="date-page-title"
       >
         <div class="page-intro">
@@ -218,6 +218,13 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="date-presentation">Language</label>
+                    <select id="date-presentation" [(ngModel)]="pgLang" (ngModelChange)="changeLangLocale($event)">
+                      <option value="fa">فارسی</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
                     <label for="date-format">Display format</label>
                     <input
                       id="date-format"
@@ -245,7 +252,8 @@
                       (ngModelChange)="updateCode()"
                     />
                   </div>
-                  <div class="form-group" *ngIf="!isRange">
+                  @if (!isRange) {
+                  <div class="form-group">
                     <label for="date-input-label">Input label</label>
                     <input
                       id="date-input-label"
@@ -255,7 +263,9 @@
                       (ngModelChange)="updateCode()"
                     />
                   </div>
-                  <div class="range-labels" *ngIf="isRange">
+                  }
+                  @if (isRange) {
+                  <div class="range-labels">
                     <div class="form-group">
                       <label for="date-range-start-label">Start label</label>
                       <input
@@ -277,6 +287,7 @@
                       />
                     </div>
                   </div>
+                }
                   <div class="form-group picker-field">
                     <span class="field-label">Minimum date</span>
                     <qeydar-date-picker
@@ -467,6 +478,8 @@
                 [readOnly]="readOnly"
                 [readOnlyInput]="readOnlyInput"
                 [presentation]="presentation"
+                [lang]="lang_Locale"
+                [modalOptions]="modalOptions"
                 [(ngModel)]="selectedDate"
                 (ngModelChange)="onChange($event)"
               ></qeydar-date-picker>
@@ -553,11 +566,12 @@
           </article>
         </div>
       </section>
+      }
 
       <!-- Time picker -->
+      @if (showPart === 'timepicker') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'timepicker'"
         aria-labelledby="time-page-title"
       >
         <div class="page-intro">
@@ -800,6 +814,7 @@
           </article>
         </div>
       </section>
+      }
 
       <!-- Hijri calendar -->
       <section

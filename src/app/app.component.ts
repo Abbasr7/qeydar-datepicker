@@ -1,8 +1,27 @@
-import { animate, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
-import { CalendarType, DATE_ADAPTER, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, PickerPresentation, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
+import {
+  CalendarType,
+  DatepickerMode,
+  GregorianDateAdapter,
+  JalaliDateAdapter,
+  lang_En,
+  lang_Fa,
+  Lang_Locale,
+  PickerModalOptions,
+  PickerPresentation,
+  RangeInputLabels,
+  TimeValueType,
+  ValueFormat,
+} from 'projects/qeydar-datepicker/src/public-api';
 import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
-import { CommonModule } from '@angular/common';
+import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuickDemoComponent } from './demos/quick-demo.component';
 import { HeroDemoComponent } from './demos/hero-demo.component';
@@ -20,7 +39,7 @@ type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule,
+    JsonPipe,
     FormsModule,
     QeydarDatePickerModule,
     QuickDemoComponent,
@@ -37,17 +56,23 @@ type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
   styleUrls: ['./app.component.scss'],
   animations: [
     trigger('slideInOut', [
-      state('in', style({
-        width: '264px',
-        opacity: 1,
-      })),
-      state('out', style({
-        width: '0',
-        opacity: 0,
-      })),
+      state(
+        'in',
+        style({
+          width: '264px',
+          opacity: 1,
+        }),
+      ),
+      state(
+        'out',
+        style({
+          width: '0',
+          opacity: 0,
+        }),
+      ),
       transition('in => out', [animate('220ms ease-in-out')]),
       transition('out => in', [animate('220ms ease-in-out')]),
-    ])
+    ]),
   ],
 })
 export class AppComponent implements OnInit {
@@ -85,10 +110,15 @@ export class AppComponent implements OnInit {
 
   demoHtmlCode = '';
   demoTsCode = '';
+  pgLang = 'fa';
+  lang_Locale: Lang_Locale = new lang_Fa();
+  modalOptions: PickerModalOptions = {
+    mobileSheet: true
+  }
 
   constructor(
     private jalali: JalaliDateAdapter,
-    private gregorian: GregorianDateAdapter
+    private gregorian: GregorianDateAdapter,
   ) {}
 
   ngOnInit(): void {
@@ -109,13 +139,22 @@ export class AppComponent implements OnInit {
   }
 
   onChangeCalendarType(event: Event): void {
-    this.calendarType = (event.target as HTMLSelectElement).value as CalendarType;
+    this.calendarType = (event.target as HTMLSelectElement)
+      .value as CalendarType;
     this.updateCode();
   }
 
   onChangeMode(event: Event): void {
     this.mode = (event.target as HTMLSelectElement).value as DatepickerMode;
     this.updateCode();
+  }
+
+  changeLangLocale(lang: 'fa' | 'en') {
+    if (lang == 'fa') {
+      this.lang_Locale = new lang_Fa();
+    } else {
+      this.lang_Locale = new lang_En();
+    }
   }
 
   updateCode(): void {
@@ -142,11 +181,13 @@ export class AppComponent implements OnInit {
   [disabled]="disabled"
   [readOnly]="readOnly"
   [readOnlyInput]="readOnlyInput"
+  [presentation]="presentation"
+  [lang]="lang_Locale"
   [(ngModel)]="selectedDate"
 ></qeydar-date-picker>`;
 
     this.demoTsCode = `import { Component } from '@angular/core';
-import { CalendarType, DatepickerMode, PickerPresentation, ValueFormat } from '@qeydar/datepicker';
+import { CalendarType, DatepickerMode, lang_En, lang_Fa, Lang_Locale, PickerPresentation, ValueFormat } from '@qeydar/datepicker';
 
 @Component({
   selector: 'app-date-example',
@@ -169,6 +210,8 @@ export class DateExampleComponent {
   disabled = ${this.disabled};
   readOnly = ${this.readOnly};
   readOnlyInput = ${this.readOnlyInput};
+  presentation: PickerPresentation = ${this.presentation};
+  lang_Locale: Lang_Locale = ${this.pgLang === 'fa' ? 'new lang_Fa()' : 'new lang_En()'};
 }`;
   }
 
