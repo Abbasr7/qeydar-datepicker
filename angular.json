@@ -69,10 +69,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "qeydar-datepicker:build:production"
+              "buildTarget": "qeydar-datepicker:build:production"
             },
             "development": {
-              "browserTarget": "qeydar-datepicker:build:development"
+              "buildTarget": "qeydar-datepicker:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -80,7 +80,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "qeydar-datepicker:build"
+            "buildTarget": "qeydar-datepicker:build"
           }
         },
         "test": {
