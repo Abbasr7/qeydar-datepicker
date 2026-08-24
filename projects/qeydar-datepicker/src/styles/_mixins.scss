@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Common mixins used across datepicker components
 
 @mixin focus-ring($color: $dp-color-primary) {

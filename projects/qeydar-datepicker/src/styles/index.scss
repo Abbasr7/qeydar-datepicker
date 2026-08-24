@@ -1,0 +1,18 @@
+/**
+ * Qeydar DatePicker styles - shared entry point
+ *
+ * Aggregates the design tokens, mixins, utilities and base rules into a
+ * single module. Use it when a consumer needs the full style surface:
+ *
+ *   @use '@qeydar/datepicker/src/styles' as *;
+ *
+ * Note: `theme-variables` and `theme-mixins` are intentionally NOT
+ * forwarded here. They are optional, self-contained modules (CSS custom
+ * properties for the `--qeydar-*` theme) and forwarding them would inject
+ * extra rules into every consumer of this entry point.
+ */
+
+@forward 'variables';
+@forward 'mixins';
+@forward 'utilities';
+@forward 'base';
