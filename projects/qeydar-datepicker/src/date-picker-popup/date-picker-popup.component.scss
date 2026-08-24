@@ -1,8 +1,5 @@
-// Variables
-@import '../styles/variables';
-@import '../styles/mixins';
-@import '../styles/utilities';
-@import '../styles/base';
+// Shared entry point: design tokens, mixins, utilities and base rules
+@use '../styles/index' as *;
 
 $shadow-color: rgba(0, 0, 0, 0.1);
 

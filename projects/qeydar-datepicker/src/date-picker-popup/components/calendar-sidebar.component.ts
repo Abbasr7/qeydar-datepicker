@@ -73,6 +73,7 @@ export class CalendarSidebarComponent implements AfterViewInit {
   readonly showSidebar = input(true);
   readonly isRange = input(false);
   readonly viewMode = input<'days' | 'months' | 'years'>('days');
+  readonly currentDate = input<Date | null>(null);
   readonly periods = input<any[]>([]);
   readonly monthListNum = input<number[]>([]);
   readonly yearList = input<number[]>([]);
