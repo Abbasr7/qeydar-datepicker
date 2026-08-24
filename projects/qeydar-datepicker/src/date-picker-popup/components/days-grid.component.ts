@@ -1,76 +1,79 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
-import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, TemplateRef, input, output } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 @Component({
   selector: 'qeydar-days-grid',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIf, NgFor, NgTemplateOutlet],
-  styleUrls: ['./days-grid.component.scss'],
+  imports: [NgTemplateOutlet],
+  styleUrl: './days-grid.component.scss',
   template: `
-    <div *ngIf="viewMode === 'days'">
-      <div *ngIf="viewMode === 'days'" class="weekdays">
-        <span *ngFor="let day of weekDays">{{ day }}</span>
+    @if (viewMode() === 'days') {
+      <div>
+        <div class="weekdays">
+          @for (day of weekDays(); track day) {
+            <span>{{ day }}</span>
+          }
+        </div>
+        <div class="days">
+            @for (day of days(); track day) {
+              <button
+                tabindex="-1"
+                [class.different-month]="!isSameMonth()(day, currentDate())"
+                [class.selected]="isSelected()(day)"
+                [class.in-range]="isInRange()(day)"
+                [class.range-start]="isRangeStart()(day)"
+                [class.range-end]="isRangeEnd()(day)"
+                [class.today]="isToday()(day)"
+                [class.disabled]="isDateDisabled()(day)"
+                [disabled]="isDateDisabled()(day)"
+                (click)="selectDay.emit(day)"
+                (mouseenter)="mouseEnter.emit(day)"
+                >
+                @if (dayTemplate(); as tpl) {
+                  <ng-container *ngTemplateOutlet="$any(tpl); context: getDayTemplateContext(day)"></ng-container>
+                } @else {
+                  {{ getDayNumber()(day) }}
+                }
+              </button>
+            }
+        </div>
       </div>
-      <div *ngIf="viewMode === 'days'" class="days">
-        <button
-          *ngFor="let day of days"
-          tabindex="-1"
-          [class.different-month]="!isSameMonth(day, currentDate)"
-          [class.selected]="isSelected(day)"
-          [class.in-range]="isInRange(day)"
-          [class.range-start]="isRangeStart(day)"
-          [class.range-end]="isRangeEnd(day)"
-          [class.today]="isToday(day)"
-          [class.disabled]="isDateDisabled(day)"
-          [disabled]="isDateDisabled(day)"
-          (click)="selectDay.emit(day)"
-          (mouseenter)="mouseEnter.emit(day)"
-        >
-          <ng-container *ngIf="dayTemplate; else dayDefTemplate">
-            <ng-container *ngTemplateOutlet="$any(dayTemplate); context: getDayTemplateContext(day)"></ng-container>
-          </ng-container>
-          <ng-template #dayDefTemplate>
-            {{ getDayNumber(day) }}
-          </ng-template>
-        </button>
-      </div>
-    </div>
-  `
+    }
+    `
 })
 export class DaysGridComponent {
-  @Input() viewMode: 'days' | 'months' | 'years' = 'days';
-  @Input() days: Date[] = [];
-  @Input() weekDays: string[] = [];
-  @Input() currentDate: Date;
-  @Input() dayTemplate: TemplateRef<any> | null = null;
+  readonly viewMode = input<'days' | 'months' | 'years'>('days');
+  readonly days = input<Date[]>([]);
+  readonly weekDays = input<string[]>([]);
+  readonly currentDate = input.required<Date>();
+  readonly dayTemplate = input<TemplateRef<any> | null>(null);
 
-  @Input() isSameMonth: (d1: Date, d2: Date) => boolean;
-  @Input() isSelected: (d: Date) => boolean;
-  @Input() isInRange: (d: Date) => boolean;
-  @Input() isRangeStart: (d: Date) => boolean;
-  @Input() isRangeEnd: (d: Date) => boolean;
-  @Input() isToday: (d: Date) => boolean;
-  @Input() isDateDisabled: (d: Date) => boolean;
-  @Input() getDayNumber: (d: Date) => number;
+  readonly isSameMonth = input.required<(d1: Date, d2: Date) => boolean>();
+  readonly isSelected = input.required<(d: Date) => boolean>();
+  readonly isInRange = input.required<(d: Date) => boolean>();
+  readonly isRangeStart = input.required<(d: Date) => boolean>();
+  readonly isRangeEnd = input.required<(d: Date) => boolean>();
+  readonly isToday = input.required<(d: Date) => boolean>();
+  readonly isDateDisabled = input.required<(d: Date) => boolean>();
+  readonly getDayNumber = input.required<(d: Date) => number>();
 
   getDayTemplateContext(day: Date): object {
     return {
       $implicit: day,
       day,
       date: day,
-      dayNumber: this.getDayNumber(day),
-      isSelected: this.isSelected(day),
-      isInRange: this.isInRange(day),
-      isRangeStart: this.isRangeStart(day),
-      isRangeEnd: this.isRangeEnd(day),
-      isToday: this.isToday(day),
-      isDisabled: this.isDateDisabled(day),
-      isCurrentMonth: this.isSameMonth(day, this.currentDate)
+      dayNumber: this.getDayNumber()(day),
+      isSelected: this.isSelected()(day),
+      isInRange: this.isInRange()(day),
+      isRangeStart: this.isRangeStart()(day),
+      isRangeEnd: this.isRangeEnd()(day),
+      isToday: this.isToday()(day),
+      isDisabled: this.isDateDisabled()(day),
+      isCurrentMonth: this.isSameMonth()(day, this.currentDate())
     };
   }
 
-  @Output() selectDay = new EventEmitter<Date>();
-  @Output() mouseEnter = new EventEmitter<Date>();
+  readonly selectDay = output<Date>();
+  readonly mouseEnter = output<Date>();
 }
 
 

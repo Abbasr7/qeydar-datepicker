@@ -1,4 +1,4 @@
-import { Component, QueryList, ViewChildren } from '@angular/core';
+import { Component, viewChildren } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { DatePickerPopupComponent } from './date-picker-popup.component';
@@ -10,7 +10,6 @@ import { SelectionStrategyService } from './services/selection-strategy.service'
 import { ValidationStrategyService } from './services/validation-strategy.service';
 
 @Component({
-  standalone: true,
   imports: [DatePickerPopupComponent, CustomTemplate, FormsModule],
   template: `
     <qeydar-date-picker-popup
@@ -35,7 +34,7 @@ import { ValidationStrategyService } from './services/validation-strategy.servic
 })
 class PopupHostComponent {
   adapter = new GregorianDateAdapter();
-  @ViewChildren(CustomTemplate) templateDirectives!: QueryList<CustomTemplate>;
+  readonly templateDirectives = viewChildren(CustomTemplate);
   selected: Date | null = null;
 }
 
@@ -69,7 +68,7 @@ describe('DatePickerPopupComponent slots', () => {
   });
 
   it('replaces the body, header, and footer with projected templates', () => {
-    const templates = fixture.componentInstance.templateDirectives;
+    const templates = fixture.componentInstance.templateDirectives();
     expect(templates.length).toBe(4);
     popup.bodyTemplate = templates.find(template => template.getType() === 'body')!.template;
     popup.headerTemplate = templates.find(template => template.getType() === 'header')!.template;

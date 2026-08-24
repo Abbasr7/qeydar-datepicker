@@ -11,7 +11,7 @@ import {
     ConnectionPositionPair
 } from '@angular/cdk/overlay';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Directive, ElementRef, Input, inject, DestroyRef } from '@angular/core';
+import { Directive, ElementRef, inject, DestroyRef, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export type SafeAny = any;
@@ -84,21 +84,21 @@ type Dimensions = Omit<ClientRect, 'x' | 'y' | 'toJSON'>;
 @Directive({
     selector: '[cdkConnectedOverlay][nzConnectedOverlay]',
     exportAs: 'nzConnectedOverlay',
-    standalone: true
 })
 export class NzConnectedOverlayDirective {
-    @Input() @InputBoolean() nzArrowPointAtCenter: boolean = false;
+    private readonly cdkConnectedOverlay = inject(CdkConnectedOverlay);
+
+    @InputBoolean()
+readonly nzArrowPointAtCenter = input<boolean>(false);
     private readonly destroyRef = inject(DestroyRef);
 
-    constructor(
-        private readonly cdkConnectedOverlay: CdkConnectedOverlay
-    ) {
+    constructor() {
         this.cdkConnectedOverlay.backdropClass = 'nz-overlay-transparent-backdrop';
 
         this.cdkConnectedOverlay.positionChange
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((position: ConnectedOverlayPositionChange) => {
-                if (this.nzArrowPointAtCenter) {
+                if (this.nzArrowPointAtCenter()) {
                     this.updateArrowPosition(position);
                 }
             });

@@ -1,33 +1,36 @@
-import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, inject, input } from '@angular/core';
 
 @Directive({
   selector: '[qeydar-dateMask]',
-  standalone: true
+  host: {
+    '(input)': 'onInput($event)',
+    '(keydown)': 'onKeyDown($event)'
+  }
 })
 export class DateMaskDirective {
-  @Input('qeydar-dateMask') dateFormat: string = 'yyyy/MM/dd';
-  @Input() disableInputMask = false;
+  el = inject(ElementRef);
+
+  readonly dateFormat = input<string>('yyyy/MM/dd', { alias: "qeydar-dateMask" });
+  readonly disableInputMask = input(false);
 
   delimiters: string[] = [];
   parts: string[] = [];
   lastValue: string = '';
-
-  constructor(public el: ElementRef) {}
 
   ngOnInit() {
     this.parseFormat();
   }
 
   parseFormat() {
-    if (this.disableInputMask)
+    if (this.disableInputMask())
       return;
 
     this.parts = [];
     this.delimiters = [];
     let currentPart = '';
     
-    for (let i = 0; i < this.dateFormat.length; i++) {
-      const char = this.dateFormat[i];
+    for (let i = 0; i < this.dateFormat().length; i++) {
+      const char = this.dateFormat()[i];
       
       if (this.isFormatChar(char)) {
         currentPart += char;
@@ -49,9 +52,8 @@ export class DateMaskDirective {
     return /[yMdHhmsa]/i.test(char);
   }
 
-  @HostListener('input', ['$event'])
   onInput(event: Event) {
-    if (this.disableInputMask)
+    if (this.disableInputMask())
       return;
 
     const input = event.target as HTMLInputElement;
@@ -130,9 +132,8 @@ export class DateMaskDirective {
     return remainingValue.replace(/^[:/\s-]/, '');
   }
 
-  @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (this.disableInputMask)
+    if (this.disableInputMask())
       return;
 
     const input = event.target as HTMLInputElement;

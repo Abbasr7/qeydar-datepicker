@@ -12,14 +12,12 @@ export interface ValidTimeResult {
   providedIn: 'root'
 })
 export class QeydarDatePickerService {
+  locale_fa = inject(lang_Fa);
+  locale_en = inject(lang_En);
+
   private readonly destroyRef = inject(DestroyRef);
   activeInput$ = new BehaviorSubject<string>('');
   locale: Lang_Locale;
-
-  constructor(
-    public locale_fa: lang_Fa,
-    public locale_en: lang_En
-  ) {}
 
   getActiveInputValue(): string {
     return this.activeInput$.getValue();

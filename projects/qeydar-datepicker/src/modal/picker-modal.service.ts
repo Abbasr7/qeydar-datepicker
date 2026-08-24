@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable, NgZone, OnDestroy } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ESCAPE, hasModifierKey } from '@angular/cdk/keycodes';
@@ -21,6 +21,10 @@ const LEAVE_FALLBACK_DELAY = PICKER_MODAL_LEAVE_DURATION + 120;
  */
 @Injectable()
 export class PickerModalService implements OnDestroy {
+  private readonly overlay = inject(Overlay);
+  private readonly ngZone = inject(NgZone);
+  private readonly document = inject<Document>(DOCUMENT);
+
   private activeOverlayRef: OverlayRef | null = null;
   private leavingOverlayRef: OverlayRef | null = null;
   private previouslyFocused: HTMLElement | null = null;
@@ -40,12 +44,6 @@ export class PickerModalService implements OnDestroy {
    * restored focus immediately re-opens the picker.
    */
   readonly closed$: Observable<void> = this.closed.asObservable();
-
-  constructor(
-    private readonly overlay: Overlay,
-    private readonly ngZone: NgZone,
-    @Inject(DOCUMENT) private readonly document: Document
-  ) {}
 
   get isOpen(): boolean {
     return this.activeOverlayRef !== null;

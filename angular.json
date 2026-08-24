@@ -88,8 +88,9 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -129,7 +130,6 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "main": "projects/qeydar-datepicker/src/test.ts",
             "tsConfig": "projects/qeydar-datepicker/tsconfig.spec.json",
             "karmaConfig": "projects/qeydar-datepicker/karma.conf.js"
           }

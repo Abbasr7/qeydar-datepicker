@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, Inject, Optional } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface DatePickerTheme {
@@ -30,10 +30,10 @@ export class DatePickerThemeService {
   private config: DatePickerThemeConfig;
   private document: Document;
 
-  constructor(
-    @Inject(DOCUMENT) document: Document,
-    @Optional() @Inject('DATE_PICKER_THEME_CONFIG') themeConfig?: DatePickerThemeConfig
-  ) {
+  constructor() {
+    const document = inject<Document>(DOCUMENT);
+    const themeConfig = inject<DatePickerThemeConfig>('DATE_PICKER_THEME_CONFIG' as any, { optional: true });
+
     this.document = document;
     this.initializeConfig(themeConfig);
     this.initializeTheme();
@@ -42,7 +42,7 @@ export class DatePickerThemeService {
   /**
    * Initialize theme configuration with defaults
    */
-  private initializeConfig(config?: DatePickerThemeConfig): void {
+  private initializeConfig(config?: DatePickerThemeConfig | null): void {
     this.config = config || this.getDefaultConfig();
   }
 

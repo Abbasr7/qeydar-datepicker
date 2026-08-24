@@ -1,148 +1,244 @@
-import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional, ViewContainerRef, inject, DestroyRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, AbstractControl, ValidationErrors, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  Renderer2,
+  ChangeDetectorRef,
+  AfterViewInit,
+  NgZone,
+  OnDestroy,
+  ChangeDetectionStrategy,
+  TemplateRef,
+  ViewContainerRef,
+  inject,
+  DestroyRef,
+  input,
+  output,
+  viewChild,
+  viewChildren,
+  contentChildren,
+  model,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  FormBuilder,
+  FormGroup,
+  AbstractControl,
+  ValidationErrors,
+  ReactiveFormsModule,
+  FormsModule,
+} from '@angular/forms';
 import { slideMotion } from './utils/animation/slide';
-import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter, DATE_ADAPTER, provideDateAdapter } from './date-adapter';
-import { CustomLabels, DateRange, Lang_Locale, RangeInputLabels } from './utils/models';
+import {
+  DateAdapter,
+  JalaliDateAdapter,
+  GregorianDateAdapter,
+  DATE_ADAPTER,
+  provideDateAdapter,
+} from './date-adapter';
+import {
+  CustomLabels,
+  DateRange,
+  Lang_Locale,
+  RangeInputLabels,
+} from './utils/models';
 import { DatePickerPopupComponent } from './date-picker-popup/date-picker-popup.component';
-import { ConnectedOverlayPositionChange, ConnectionPositionPair, HorizontalConnectionPos, OverlayModule, VerticalConnectionPos } from '@angular/cdk/overlay';
-import { DATE_PICKER_POSITION_MAP, DEFAULT_DATE_PICKER_POSITIONS, NzConnectedOverlayDirective } from './utils/overlay/overlay';
-import { DOCUMENT, NgIf, NgTemplateOutlet } from '@angular/common';
+import {
+  ConnectedOverlayPositionChange,
+  ConnectionPositionPair,
+  HorizontalConnectionPos,
+  OverlayModule,
+  VerticalConnectionPos,
+} from '@angular/cdk/overlay';
+import {
+  DATE_PICKER_POSITION_MAP,
+  DEFAULT_DATE_PICKER_POSITIONS,
+  NzConnectedOverlayDirective,
+} from './utils/overlay/overlay';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { QeydarDatePickerService } from './date-picker.service';
 import { fromEvent } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CalendarType, DatepickerMode, Placement, RangePartType, ValueFormat } from './utils/types';
+import {
+  CalendarType,
+  DatepickerMode,
+  Placement,
+  RangePartType,
+  ValueFormat,
+} from './utils/types';
 import { DateMaskDirective } from './utils/input-mask.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { A11yModule } from '@angular/cdk/a11y';
 import { PickerModalService } from './modal/picker-modal.service';
-import { PickerModalOptions, PickerPresentation } from './modal/picker-modal.types';
+import {
+  PickerModalOptions,
+  PickerPresentation,
+} from './modal/picker-modal.types';
 import { PickerModalStylesComponent } from './modal/picker-modal-styles.component';
 import { CustomTemplate } from './utils/template.directive';
 
 @Component({
   selector: 'qeydar-date-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
   template: `
     <qeydar-picker-modal-styles></qeydar-picker-modal-styles>
-    <div qeydarDatepickerStyles class="date-picker-wrapper" [class.date-picker-rtl]="rtl" [class.disabled]="disabled" [formGroup]="form">
-      <ng-container *ngIf="!isInline; else inlineMode">
-        <ng-container *ngIf="!isRange; else rangeMode">
+    <div
+      qeydarDatepickerStyles
+      class="date-picker-wrapper"
+      [class.date-picker-rtl]="rtl()"
+      [class.disabled]="disabled()"
+      [formGroup]="form"
+    >
+      @if (!isInline()) {
+        @if (!isRange()) {
           <div class="input-container" [class.rtl]>
-            <label for="dateInput" *ngIf="inputLabel">{{ inputLabel }}</label>
+            @if (inputLabel(); as label) {
+              <label for="dateInput">{{ label }}</label>
+            }
             <input
               #datePickerInput
               type="text"
               formControlName="dateInput"
               [qeydar-dateMask]="format"
-              [disableInputMask]="disableInputMask"
-              (click)="toggleDatePicker(null,$event)"
-              (focus)="onFocusInput(null,$event)"
-              (blur)="onInputBlur(null,$event)"
+              [disableInputMask]="disableInputMask()"
+              (click)="toggleDatePicker(null, $event)"
+              (focus)="onFocusInput(null, $event)"
+              (blur)="onInputBlur(null, $event)"
               (keydown)="onInputKeydown($event)"
               [class.focus]="isOpen"
               [placeholder]="getPlaceholder()"
-              [readonly]="readOnly || readOnlyInput"
-              [attr.disabled]="disabled? 'disabled':null"
-            >
+              [readonly]="readOnly() || readOnlyInput()"
+              [attr.disabled]="disabled() ? 'disabled' : null"
+            />
             <ng-container *ngTemplateOutlet="icon"></ng-container>
           </div>
-        </ng-container>
-        <ng-template #rangeMode>
-          <div *ngIf="rangeInputLabels" class="range-input-labels">
-            <div class="start-label">
-              <label for="startDateInput">{{ rangeInputLabels.start }}</label>
+        } @else {
+          @if (rangeInputLabels(); as labels) {
+            <div class="range-input-labels">
+              <div class="start-label">
+                <label for="startDateInput">{{ labels.start }}</label>
+              </div>
+              <div class="end-label">
+                <label for="endDateInput">{{ labels.end }}</label>
+              </div>
             </div>
-            <div class="end-label">
-              <label for="endDateInput">{{ rangeInputLabels.end }}</label>
-            </div>
-          </div>
+          }
           <div class="range-input-container">
             <input
               #rangePickerInput
               type="text"
               formControlName="startDateInput"
               [qeydar-dateMask]="format"
-              [disableInputMask]="disableInputMask"
-              (click)="toggleDatePicker('start',$event)"
-              (focus)="onFocusInput('start',$event)"
+              [disableInputMask]="disableInputMask()"
+              (click)="toggleDatePicker('start', $event)"
+              (focus)="onFocusInput('start', $event)"
               (focusout)="onFocusout($event)"
-              (blur)="onInputBlur('start',$event)"
+              (blur)="onInputBlur('start', $event)"
               (keydown)="onInputKeydown($event)"
               [class.focus]="isOpen && activeInput === 'start'"
               [placeholder]="getPlaceholder('start')"
-              [readonly]="readOnly || readOnlyInput"
-              [attr.disabled]="disabled? 'disabled':null"
-            >
+              [readonly]="readOnly() || readOnlyInput()"
+              [attr.disabled]="disabled() ? 'disabled' : null"
+            />
             <span class="range-separator">→</span>
             <input
               #rangePickerInput
               type="text"
               formControlName="endDateInput"
               [qeydar-dateMask]="format"
-              [disableInputMask]="disableInputMask"
-              (click)="toggleDatePicker('end',$event)"
-              (focus)="onFocusInput('end',$event)"
+              [disableInputMask]="disableInputMask()"
+              (click)="toggleDatePicker('end', $event)"
+              (focus)="onFocusInput('end', $event)"
               (focusout)="onFocusout($event)"
-              (blur)="onInputBlur('end',$event)"
+              (blur)="onInputBlur('end', $event)"
               (keydown)="onInputKeydown($event)"
               [class.focus]="isOpen && activeInput === 'end'"
               [placeholder]="getPlaceholder('end')"
-              [readonly]="readOnly || readOnlyInput"
-              [attr.disabled]="disabled? 'disabled':null"
-            >
+              [readonly]="readOnly() || readOnlyInput()"
+              [attr.disabled]="disabled() ? 'disabled' : null"
+            />
             <ng-container *ngTemplateOutlet="icon"></ng-container>
           </div>
-        </ng-template>
+        }
         <ng-template #icon>
-            <button class="calendar-button" (click)="toggleDatePicker(null, $event)" tabindex="-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 24 24" fill="#999">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z" fill="#999"/>
-              </svg>
-            </button>
+          <button
+            class="calendar-button"
+            (click)="toggleDatePicker(null, $event)"
+            tabindex="-1"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18px"
+              height="18px"
+              viewBox="0 0 24 24"
+              fill="#999"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H16V2C16 1.44772 16.4477 1 17 1C17.5523 1 18 1.44772 18 2V3H19C20.6569 3 22 4.34315 22 6V20C22 21.6569 20.6569 23 19 23H5C3.34315 23 2 21.6569 2 20V6C2 4.34315 3.34315 3 5 3H6V2ZM16 5V6C16 6.55228 16.4477 7 17 7C17.5523 7 18 6.55228 18 6V5H19C19.5523 5 20 5.44772 20 6V9H4V6C4 5.44772 4.44772 5 5 5H6V6C6 6.55228 6.44772 7 7 7C7.55228 7 8 6.55228 8 6V5H16ZM4 11V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V11H4Z"
+                fill="#999"
+              />
+            </svg>
+          </button>
         </ng-template>
-      </ng-container>
+      } @else {
+        <ng-container *ngTemplateOutlet="pickerContent"></ng-container>
+      }
       <ng-template #pickerContent>
         <div
           class="dp-dropdown"
-          [class.qeydar-picker-dropdown-rtl]="rtl"
-          [class.qeydar-picker-dropdown-placement-bottomLeft]="currentPositionY === 'bottom' && currentPositionX === 'start'"
-          [class.qeydar-picker-dropdown-placement-topLeft]="currentPositionY === 'top' && currentPositionX === 'start'"
-          [class.qeydar-picker-dropdown-placement-bottomRight]="currentPositionY === 'bottom' && currentPositionX === 'end'"
-          [class.qeydar-picker-dropdown-placement-topRight]="currentPositionY === 'top' && currentPositionX === 'end'"
-          [class.qeydar-picker-dropdown-range]="isRange"
+          [class.qeydar-picker-dropdown-rtl]="rtl()"
+          [class.qeydar-picker-dropdown-placement-bottomLeft]="
+            currentPositionY === 'bottom' && currentPositionX === 'start'
+          "
+          [class.qeydar-picker-dropdown-placement-topLeft]="
+            currentPositionY === 'top' && currentPositionX === 'start'
+          "
+          [class.qeydar-picker-dropdown-placement-bottomRight]="
+            currentPositionY === 'bottom' && currentPositionX === 'end'
+          "
+          [class.qeydar-picker-dropdown-placement-topRight]="
+            currentPositionY === 'top' && currentPositionX === 'end'
+          "
+          [class.qeydar-picker-dropdown-range]="isRange()"
         >
           <qeydar-date-picker-popup
-            [rtl]="rtl"
+            [rtl]="rtl()"
             [@slideMotion]="'enter'"
             [selectedDate]="selectedDate"
             [selectedStartDate]="selectedStartDate"
             [selectedEndDate]="selectedEndDate"
-            [mode]="mode"
-            [isRange]="isRange"
-            [customLabels]="customLabels"
+            [mode]="mode()"
+            [isRange]="isRange()"
+            [customLabels]="customLabels()"
             [dateAdapter]="currentDateAdapter"
             [minDate]="minDate"
             [maxDate]="maxDate"
-            [cssClass]="cssClass"
-            [footerDescription]="footerDescription"
+            [cssClass]="cssClass()"
+            [footerDescription]="footerDescription()"
             [activeInput]="activeInput"
-            [showSidebar]="showSidebar"
-            [showToday]="showToday"
+            [showSidebar]="showSidebar()"
+            [showToday]="showToday()"
             [showTimePicker]="showTimePicker"
             [timeDisplayFormat]="timeDisplayFormat"
             [dateFormat]="extractDateFormat(format)"
-            [disabledDates]="disabledDates"
-            [disabledDatesFilter]="disabledDatesFilter"
-            [disabledTimesFilter]="disabledTimesFilter"
-            [templates]="templates"
-            [readOnly]="readOnly"
+            [disabledDates]="disabledDates()"
+            [disabledDatesFilter]="disabledDatesFilter()"
+            [disabledTimesFilter]="disabledTimesFilter()"
+            [templates]="templates()"
+            [readOnly]="readOnly()"
             (dateSelected)="onDateSelected($event)"
             (dateRangeSelected)="onDateRangeSelected($event)"
             (closePicker)="close()"
             (clickInside)="focus()"
             tabindex="-1"
-            [attr.disabled]="disabled? 'disabled':null"
+            [attr.disabled]="disabled() ? 'disabled' : null"
           ></qeydar-date-picker-popup>
         </div>
       </ng-template>
@@ -155,24 +251,38 @@ import { CustomTemplate } from './utils/template.directive';
           role="dialog"
           aria-modal="true"
           [attr.aria-labelledby]="modalTitleId"
-          [attr.dir]="rtl ? 'rtl' : 'ltr'"
+          [attr.dir]="rtl() ? 'rtl' : 'ltr'"
           tabindex="-1"
           cdkTrapFocus
         >
           <span class="qeydar-picker-modal-handle" aria-hidden="true"></span>
-          <header class="qeydar-picker-modal-header" *ngIf="!modalOptions.hideHeader">
-            <h2 class="qeydar-picker-modal-title" [id]="modalTitleId">{{ getModalTitle() }}</h2>
-            <button
-              class="qeydar-picker-modal-close"
-              type="button"
-              [attr.aria-label]="lang.cancel"
-              (click)="close()"
-            >
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </header>
+          @if (!modalOptions().hideHeader) {
+            <header class="qeydar-picker-modal-header">
+              <h2 class="qeydar-picker-modal-title" [id]="modalTitleId">
+                {{ getModalTitle() }}
+              </h2>
+              <button
+                class="qeydar-picker-modal-close"
+                type="button"
+                [attr.aria-label]="lang()!.cancel"
+                (click)="close()"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 4L4 12M4 4l8 8"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            </header>
+          }
           <div class="qeydar-picker-modal-body">
             <ng-container *ngTemplateOutlet="pickerContent"></ng-container>
           </div>
@@ -191,7 +301,7 @@ import { CustomTemplate } from './utils/template.directive';
       >
         <div
           class="qeydar-picker-wrapper"
-          [class.disabled]="disabled"
+          [class.disabled]="disabled()"
           [@slideMotion]="'enter'"
           style="position: relative;"
           (click)="$event.stopPropagation()"
@@ -201,109 +311,110 @@ import { CustomTemplate } from './utils/template.directive';
       </ng-template>
     </div>
   `,
-  styles: [`
-    :host.qeydar-datepicker ::ng-deep {
-      display: block;
-      max-width: fit-content;
-    }
-    .date-picker-wrapper {
-      position: relative;
-      max-width: fit-content;
-    }
-    input {
-      font-family: inherit;
-      max-width: 300px;
-      padding: 6px 10px;
-      border: 1px solid #d9d9d9;
-      border-radius: 4px;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.3s;
-    }
-    input:hover {
-      border-color: #40a9ff;
-    }
-    input.focus {
-      border-color: #40a9ff;
-      box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
-      outline: none;
-    }
-    .range-input-container {
-      display: flex;
-      align-items: center;
-      border: 1px solid #d9d9d9;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .range-input-container input {
-      border: none;
-      flex: 1;
-      width: 50%;
-      padding: 6px 10px;
-      border-radius: 0;
-    }
-    .range-input-container input.focus {
-      border-bottom: 1px solid;
-      border-color: #40a9ff;
-      box-shadow: none !important;
-    }
-    .range-separator {
-      padding: 0 8px;
-      color: #999;
-    }
-    .calendar-button {
-      background: none;
-      border: none;
-      padding: 4px 4px 0;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .range-input-labels {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      color: #444;
-      padding: 0px 5px 5px;
-    }
-    .end-label {
-      width: 49%;
-    }
-    .disabled {
-      opacity: 0.8;
-      pointer-events: none;
-    }
-    .disabled .range-input-container {
-      background: #f3f3f3;
-    }
-    .input-container .calendar-button {
-      position: absolute;
-      right: 0;
-      bottom: 5px;
-    }
-    .date-picker-rtl .input-container .calendar-button {
-      right: auto;
-      left: 0;
-    }
-    .input-container {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      color: #444 
-    }
-    .input-container.rtl {
-      direction: rtl;
-    }
-    // rtl
-    :dir(rtl) .range-separator{
-      rotate: 180deg;
-    }
-  `],
+  styles: [
+    `
+      :host.qeydar-datepicker ::ng-deep {
+        display: block;
+        max-width: fit-content;
+      }
+      .date-picker-wrapper {
+        position: relative;
+        max-width: fit-content;
+      }
+      input {
+        font-family: inherit;
+        max-width: 300px;
+        padding: 6px 10px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s;
+      }
+      input:hover {
+        border-color: #40a9ff;
+      }
+      input.focus {
+        border-color: #40a9ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        outline: none;
+      }
+      .range-input-container {
+        display: flex;
+        align-items: center;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .range-input-container input {
+        border: none;
+        flex: 1;
+        width: 50%;
+        padding: 6px 10px;
+        border-radius: 0;
+      }
+      .range-input-container input.focus {
+        border-bottom: 1px solid;
+        border-color: #40a9ff;
+        box-shadow: none !important;
+      }
+      .range-separator {
+        padding: 0 8px;
+        color: #999;
+      }
+      .calendar-button {
+        background: none;
+        border: none;
+        padding: 4px 4px 0;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .range-input-labels {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: #444;
+        padding: 0px 5px 5px;
+      }
+      .end-label {
+        width: 49%;
+      }
+      .disabled {
+        opacity: 0.8;
+        pointer-events: none;
+      }
+      .disabled .range-input-container {
+        background: #f3f3f3;
+      }
+      .input-container .calendar-button {
+        position: absolute;
+        right: 0;
+        bottom: 5px;
+      }
+      .date-picker-rtl .input-container .calendar-button {
+        right: auto;
+        left: 0;
+      }
+      .input-container {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #444;
+      }
+      .input-container.rtl {
+        direction: rtl;
+      }
+      // rtl
+      :dir(rtl) .range-separator {
+        rotate: 180deg;
+      }
+    `,
+  ],
   host: {
-    "[class.qeydar-datepicker]": "true",
-    "[class.qeydar-datepicker-rtl]": "rtl"
+    '[class.qeydar-datepicker]': 'true',
+    '[class.qeydar-datepicker-rtl]': 'rtl()',
   },
   imports: [
-    NgIf,
     FormsModule,
     ReactiveFormsModule,
     OverlayModule,
@@ -312,7 +423,7 @@ import { CustomTemplate } from './utils/template.directive';
     NzConnectedOverlayDirective,
     DateMaskDirective,
     DatePickerPopupComponent,
-    PickerModalStylesComponent
+    PickerModalStylesComponent,
   ],
   providers: [
     QeydarDatePickerService,
@@ -320,55 +431,71 @@ import { CustomTemplate } from './utils/template.directive';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => DatePickerComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
-  animations: [slideMotion]
+  animations: [slideMotion],
 })
-export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class DatePickerComponent
+  implements ControlValueAccessor, OnInit, OnChanges, AfterViewInit, OnDestroy
+{
+  fb = inject(FormBuilder);
+  elementRef = inject(ElementRef);
+  renderer = inject(Renderer2);
+  cdref = inject(ChangeDetectorRef);
+  dpService = inject(QeydarDatePickerService);
+  ngZone = inject(NgZone);
+  jalali = inject(JalaliDateAdapter);
+  gregorian = inject(GregorianDateAdapter);
+  private viewContainerRef = inject(ViewContainerRef);
+  private pickerModal = inject(PickerModalService);
+  private injectedDateAdapter = inject<DateAdapter<Date>>(DATE_ADAPTER, {
+    optional: true,
+  });
+
   // ========== Input Properties ==========
-  @Input() rtl = false;
-  @Input() mode: DatepickerMode = 'day';
-  @Input() isRange = false;
-  @Input() customLabels: Array<CustomLabels>;
-  @Input() calendarType: CalendarType = 'gregorian';
-  @Input() lang: Lang_Locale;
-  @Input() cssClass = '';
-  @Input() footerDescription = '';
-  @Input() rangeInputLabels: RangeInputLabels;
-  @Input() inputLabel: string;
-  @Input() placement: Placement = 'bottomRight';
-  @Input() disabled = false;
-  @Input() isInline = false;
-  @Input() presentation: PickerPresentation = 'popover';
-  @Input() modalOptions: PickerModalOptions = {};
-  @Input() showSidebar = true;
-  @Input() showToday = false;
-  @Input() valueFormat: ValueFormat = 'gregorian';
-  @Input() disableInputMask = false;
-  @Input() disabledDates: Array<Date | string> = [];
-  @Input() disabledDatesFilter: (date: Date) => boolean;
-  @Input() disabledTimesFilter: (date: Date) => boolean;
-  @Input() allowEmpty = false;
-  @Input() readOnly = false;
-  @Input() readOnlyInput = false;
-  @Input() dateAdapter: DateAdapter<Date> | null = null;
+  readonly rtl = input(false);
+  readonly mode = input<DatepickerMode>('day');
+  readonly isRange = input(false);
+  readonly customLabels = input<Array<CustomLabels>>([]);
+  readonly calendarType = input<CalendarType>('gregorian');
+  readonly lang = model<Lang_Locale>();
+  readonly cssClass = input('');
+  readonly footerDescription = input('');
+  readonly rangeInputLabels = input<RangeInputLabels>();
+  readonly inputLabel = input<string>();
+  readonly placement = input<Placement>('bottomRight');
+  readonly disabled = input(false);
+  readonly isInline = input(false);
+  readonly presentation = input<PickerPresentation>('popover');
+  readonly modalOptions = input<PickerModalOptions>({});
+  readonly showSidebar = input(true);
+  readonly showToday = input(false);
+  readonly valueFormat = input<ValueFormat>('gregorian');
+  readonly disableInputMask = input(false);
+  readonly disabledDates = input<Array<Date | string>>([]);
+  readonly disabledDatesFilter = input<(date: Date) => boolean>();
+  readonly disabledTimesFilter = input<(date: Date) => boolean>();
+  readonly allowEmpty = input(false);
+  readonly readOnly = input(false);
+  readonly readOnlyInput = input(false);
+  readonly dateAdapter = input<DateAdapter<Date> | null>(null);
   @Input() set minDate(date: Date | string | null) {
     if (date) {
       this._minDate = date;
     }
-  };
-  get minDate() : Date {
-    return this._minDate
   }
-  
+  get minDate(): Date {
+    return this._minDate;
+  }
+
   @Input() set maxDate(date: Date | string | null) {
     if (date) {
       this._maxDate = date;
     }
-  };
-  get maxDate() : Date {
-    return this._maxDate
+  }
+  get maxDate(): Date {
+    return this._maxDate;
   }
 
   @Input() set format(value: string) {
@@ -381,21 +508,24 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   // ========== Output Properties ==========
-  @Output() onFocus = new EventEmitter<any>();
-  @Output() onBlur = new EventEmitter<any>();
-  @Output() onChangeValue = new EventEmitter<any>();
-  @Output() onOpenChange = new EventEmitter<boolean>();
+  readonly onFocus = output<any>();
+  readonly onBlur = output<any>();
+  readonly onChangeValue = output<any>();
+  readonly onOpenChange = output<boolean>();
 
   // ========== ViewChild/ViewChildren/ContentChildren Properties ==========
-  @ViewChild('datePickerInput') datePickerInput: ElementRef;
-  @ViewChild('modalContent') modalContent: TemplateRef<unknown>;
-  @ViewChildren('rangePickerInput') rangePickerInputs?: QueryList<ElementRef<HTMLInputElement>>;
-  @ViewChild(DatePickerPopupComponent) datePickerPopup: DatePickerPopupComponent;
-  @ContentChildren(CustomTemplate) templates!: QueryList<CustomTemplate>;
+  readonly datePickerInput = viewChild<ElementRef>('datePickerInput');
+  readonly modalContent = viewChild<TemplateRef<unknown>>('modalContent');
+  readonly rangePickerInputs =
+    viewChildren<ElementRef<HTMLInputElement>>('rangePickerInput');
+  readonly datePickerPopup = viewChild(DatePickerPopupComponent);
+  readonly templates = contentChildren(CustomTemplate);
 
   // ========== Class Properties ==========
   origin: ElementRef;
-  overlayPositions: ConnectionPositionPair[] = [...DEFAULT_DATE_PICKER_POSITIONS];
+  overlayPositions: ConnectionPositionPair[] = [
+    ...DEFAULT_DATE_PICKER_POSITIONS,
+  ];
   currentPositionX: HorizontalConnectionPos = 'start';
   currentPositionY: VerticalConnectionPos = 'bottom';
   document: Document;
@@ -424,32 +554,21 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   private _originalFormat = 'yyyy/MM/dd';
 
   get isModalPresentation(): boolean {
-    return !this.isInline && this.presentation === 'modal';
+    return !this.isInline() && this.presentation() === 'modal';
   }
 
   get valueAdapter() {
-    return this.valueFormat == 'jalali'? this.jalali: this.gregorian;
+    return this.valueFormat() == 'jalali' ? this.jalali : this.gregorian;
   }
 
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor(
-    public fb: FormBuilder,
-    public elementRef: ElementRef,
-    public renderer: Renderer2,
-    public cdref: ChangeDetectorRef,
-    public dpService: QeydarDatePickerService,
-    public ngZone: NgZone,
-    public jalali: JalaliDateAdapter,
-    public gregorian: GregorianDateAdapter,
-    private viewContainerRef: ViewContainerRef,
-    private pickerModal: PickerModalService,
-    @Inject(DOCUMENT) doc: Document,
-    @Optional() @Inject(DATE_ADAPTER) private injectedDateAdapter: DateAdapter<Date>
-  ) {
+  constructor() {
+    const doc = inject<Document>(DOCUMENT);
+
     this.initializeComponent(doc);
   }
-  
+
   // ========== Lifecycle Hooks ==========
   ngOnInit(): void {
     this.initialize();
@@ -463,8 +582,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   ngAfterViewInit(): void {
     this.setupAfterViewInit();
-    this._minDate = this.valueAdapter?.parse(this._minDate,this.extractDateFormat(this.format));
-    this._maxDate = this.valueAdapter?.parse(this._maxDate,this.extractDateFormat(this.format));
+    this._minDate = this.valueAdapter?.parse(
+      this._minDate,
+      this.extractDateFormat(this.format),
+    );
+    this._maxDate = this.valueAdapter?.parse(
+      this._maxDate,
+      this.extractDateFormat(this.format),
+    );
   }
 
   ngOnDestroy(): void {
@@ -481,11 +606,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     this.form = this.fb.group({
       dateInput: [''],
       startDateInput: [''],
-      endDateInput: ['']
+      endDateInput: [''],
     });
     this.documentClickListener = this.handleDocumentClick.bind(this);
-    this.lang = this.calendarType === 'jalali' ? this.dpService.locale_fa  : this.dpService.locale_en;
-    this.dpService.locale = this.lang;
+    this.lang.set(
+      this.calendarType() === 'jalali'
+        ? this.dpService.locale_fa
+        : this.dpService.locale_en,
+    );
+    this.dpService.locale = this.lang()!;
   }
 
   initialize(): void {
@@ -499,14 +628,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   // ========== Date Adapter Methods ==========
-  setDateAdapter(): void {    
+  setDateAdapter(): void {
     // Update the injected adapter to match the selected adapter
     if (this.injectedDateAdapter && !this.currentDateAdapter) {
       this.currentDateAdapter = this.injectedDateAdapter;
     }
     // اولویت اول: اگر کاربر از طریق @Input یک dateAdapter شخصی پاس داده باشد
-    if (this.dateAdapter) {
-      this.currentDateAdapter = this.dateAdapter;
+    const dateAdapter = this.dateAdapter();
+    if (dateAdapter) {
+      this.currentDateAdapter = dateAdapter;
       return;
     }
     // اولویت دوم: اگر از طریق provider یک dateAdapter شخصی تزریق شده باشد
@@ -516,18 +646,25 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     }
     // اولویت سوم: انتخاب بر اساس calendarType
     this.currentDateAdapter =
-      this.calendarType === 'jalali'
-        ? this.jalali
-        : this.gregorian;
+      this.calendarType() === 'jalali' ? this.jalali : this.gregorian;
   }
 
   // ========== Form Control Methods ==========
   setupFormControls(): void {
-    if (this.isRange) {
-      this.form.get('startDateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value, 'start'));
-      this.form.get('endDateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value, 'end'));
+    if (this.isRange()) {
+      this.form
+        .get('startDateInput')
+        ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((value) => this.onInputChange(value, 'start'));
+      this.form
+        .get('endDateInput')
+        ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((value) => this.onInputChange(value, 'end'));
     } else {
-      this.form.get('dateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value));
+      this.form
+        .get('dateInput')
+        ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((value) => this.onInputChange(value));
     }
   }
 
@@ -539,32 +676,42 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (changes['calendarType']) {
       this.setDateAdapter();
       this.updateInputValue();
-      this.lang = this.calendarType === 'jalali' ? this.dpService.locale_fa : this.dpService.locale_en;
-      this.dpService.locale = this.lang;
+      this.lang.set(
+        this.calendarType() === 'jalali'
+          ? this.dpService.locale_fa
+          : this.dpService.locale_en,
+      );
+      this.dpService.locale = this.lang()!;
     }
     if (changes['dateAdapter']) {
       this.setDateAdapter();
       this.updateInputValue();
     }
     if (changes['minDate'] || changes['maxDate']) {
-      this._minDate = this.valueAdapter?.parse(this._minDate,this.extractDateFormat(this.format));
-      this._maxDate = this.valueAdapter?.parse(this._maxDate,this.extractDateFormat(this.format));
+      this._minDate = this.valueAdapter?.parse(
+        this._minDate,
+        this.extractDateFormat(this.format),
+      );
+      this._maxDate = this.valueAdapter?.parse(
+        this._maxDate,
+        this.extractDateFormat(this.format),
+      );
       this.form.updateValueAndValidity();
     }
     if (changes['mode'] || changes['isRange']) {
       this.setupFormControls();
     }
     if (changes['placement']) {
-      this.setPlacement(this.placement);
+      this.setPlacement(this.placement());
     }
     if (changes['lang']) {
-      this.lang = changes['lang'].currentValue;
-      this.dpService.locale = this.lang;
+      this.lang.set(changes['lang'].currentValue);
+      this.dpService.locale = this.lang()!;
     }
     if (changes['mode'] && !changes['format']) {
       this.format = this.getFormatForMode();
     }
-    if (changes['isRange'] && this.isRange ==  false) {
+    if (changes['isRange'] && this.isRange() == false) {
       this.origin = this.elementRef;
     }
     if (changes['valueFormat']) {
@@ -588,7 +735,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   // ========== Input Handling Methods ==========
   onInputChange(value: string, inputType?: 'start' | 'end'): void {
     if (!this.isInternalChange) {
-      if (this.isRange) {
+      if (this.isRange()) {
         this.handleRangeInputChange(value, inputType);
       } else {
         this.handleSingleInputChange(value);
@@ -620,7 +767,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   // ========== Value Emission Methods ==========
   emitValueIfChanged(): void {
     const newValue = this.prepareValueForEmission();
-    if (newValue && JSON.stringify(newValue) !== JSON.stringify(this.lastEmittedValue)) {
+    if (
+      newValue &&
+      JSON.stringify(newValue) !== JSON.stringify(this.lastEmittedValue)
+    ) {
       this.lastEmittedValue = newValue;
       this.onChange(newValue);
       this.onChangeValue.emit(newValue);
@@ -628,15 +778,21 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   prepareValueForEmission(): any {
-    if (this.isRange) {
+    if (this.isRange()) {
       if (this.selectedStartDate && this.selectedEndDate) {
         return {
-          start: this.convertDateToFormat(this.selectedStartDate, this.calendarType),
-          end: this.convertDateToFormat(this.selectedEndDate, this.calendarType)
+          start: this.convertDateToFormat(
+            this.selectedStartDate,
+            this.calendarType(),
+          ),
+          end: this.convertDateToFormat(
+            this.selectedEndDate,
+            this.calendarType(),
+          ),
         };
       }
     } else if (this.selectedDate) {
-      return this.convertDateToFormat(this.selectedDate, this.calendarType);
+      return this.convertDateToFormat(this.selectedDate, this.calendarType());
     }
     return null;
   }
@@ -644,7 +800,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   // ========== Date Selection Methods ==========
   onDateSelected(date: Date): void {
     const clampedDate = this.clampDate(date);
-    if (this.isRange) {
+    if (this.isRange()) {
       this.handleRangeDateSelection(clampedDate);
     } else {
       this.handleSingleDateSelection(clampedDate);
@@ -655,15 +811,26 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   handleRangeDateSelection(date: Date): void {
-    if (!this.selectedStartDate || (this.selectedStartDate && this.selectedEndDate) ||
-      this.currentDateAdapter.isBefore(date, this.selectedStartDate)) {
+    if (
+      !this.selectedStartDate ||
+      (this.selectedStartDate && this.selectedEndDate) ||
+      this.currentDateAdapter.isBefore(date, this.selectedStartDate)
+    ) {
       this.selectedStartDate = date;
       this.selectedEndDate = null;
-      this.form.get('startDateInput')?.setValue(this.currentDateAdapter.format(date, this.format), { emitEvent: false });
+      this.form
+        .get('startDateInput')
+        ?.setValue(this.currentDateAdapter.format(date, this.format), {
+          emitEvent: false,
+        });
       this.form.get('endDateInput')?.setValue('', { emitEvent: false });
     } else {
       this.selectedEndDate = date;
-      this.form.get('endDateInput')?.setValue(this.currentDateAdapter.format(date, this.format), { emitEvent: false });
+      this.form
+        .get('endDateInput')
+        ?.setValue(this.currentDateAdapter.format(date, this.format), {
+          emitEvent: false,
+        });
       this.emitValueIfChanged();
       this.close();
     }
@@ -683,13 +850,23 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     this.hideStateHelper = true;
 
     this.selectedStartDate = this.clampDate(<Date>dateRange.start);
-    const startFormatted = this.currentDateAdapter.format(this.selectedStartDate, this.format);
-    this.form.get('startDateInput')?.setValue(startFormatted, { emitEvent: false });
+    const startFormatted = this.currentDateAdapter.format(
+      this.selectedStartDate,
+      this.format,
+    );
+    this.form
+      .get('startDateInput')
+      ?.setValue(startFormatted, { emitEvent: false });
 
     if (dateRange.end) {
       this.selectedEndDate = this.clampDate(<Date>dateRange.end);
-      const endFormatted = this.currentDateAdapter.format(this.selectedEndDate, this.format);
-      this.form.get('endDateInput')?.setValue(endFormatted, { emitEvent: false });
+      const endFormatted = this.currentDateAdapter.format(
+        this.selectedEndDate,
+        this.format,
+      );
+      this.form
+        .get('endDateInput')
+        ?.setValue(endFormatted, { emitEvent: false });
       this.emitValueIfChanged();
       if (!this.hasTimeComponent(this.format)) this.close();
       this.updateDatePickerPopup();
@@ -699,11 +876,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== UI State Methods ==========
   close(): void {
-    if (this.isInline || !this.isOpen) {
+    if (this.isInline() || !this.isOpen) {
       return;
     }
 
-    if (this.pickerModal.isOpen && this.modalOptions.restoreFocus !== false) {
+    if (this.pickerModal.isOpen && this.modalOptions().restoreFocus !== false) {
       this.suppressRestoredFocus();
     }
 
@@ -714,17 +891,19 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   open(): void {
-    if (this.isInline || this.isOpen || this.disabled || this.readOnly) {
+    if (this.isInline() || this.isOpen || this.disabled() || this.readOnly()) {
       return;
     }
 
     this.isOpen = true;
     this.onOpenChange.emit(true);
     if (this.isModalPresentation) {
+      const modalContent = this.modalContent();
+      if (!modalContent) return;
       this.pickerModal.open(
-        new TemplatePortal(this.modalContent, this.viewContainerRef),
-        this.modalOptions,
-        this.rtl
+        new TemplatePortal(modalContent, this.viewContainerRef),
+        this.modalOptions(),
+        this.rtl(),
       );
     } else {
       this.focus();
@@ -746,24 +925,27 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== UI Helper Methods ==========
   getInput(partType?: RangePartType): HTMLInputElement | undefined {
-    if (this.isInline) {
+    if (this.isInline()) {
       return undefined;
     }
-    return this.isRange
+    return this.isRange()
       ? partType === 'start'
-        ? this.rangePickerInputs?.first.nativeElement
-        : this.rangePickerInputs?.last.nativeElement
-      : this.datePickerInput?.nativeElement;
+        ? this.rangePickerInputs()?.at(0)!.nativeElement
+        : this.rangePickerInputs()?.at(-1)!.nativeElement
+      : this.datePickerInput()?.nativeElement;
   }
 
   getPlaceholder(inputType: string = ''): string {
-    if (inputType === 'start') return this.lang.startDate;
-    if (inputType === 'end') return this.lang.endDate;
+    if (inputType === 'start') return this.lang()!.startDate;
+    if (inputType === 'end') return this.lang()!.endDate;
 
-    switch (this.mode) {
-      case 'month': return this.lang.selectMonth;
-      case 'year': return this.lang.selectYear;
-      default: return this.lang.selectDate;
+    switch (this.mode()) {
+      case 'month':
+        return this.lang()!.selectMonth;
+      case 'year':
+        return this.lang()!.selectYear;
+      default:
+        return this.lang()!.selectDate;
     }
   }
 
@@ -773,10 +955,16 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
     let adjustedDate = this.currentDateAdapter.clone(date);
 
-    if (this.minDate && this.currentDateAdapter.isBefore(adjustedDate, this.minDate)) {
+    if (
+      this.minDate &&
+      this.currentDateAdapter.isBefore(adjustedDate, this.minDate)
+    ) {
       return this.minDate;
     }
-    if (this.maxDate && this.currentDateAdapter.isAfter(adjustedDate, this.maxDate)) {
+    if (
+      this.maxDate &&
+      this.currentDateAdapter.isAfter(adjustedDate, this.maxDate)
+    ) {
       return this.maxDate;
     }
 
@@ -822,11 +1010,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     return date;
   }
 
-  validateAndNormalizeTime(date: Date): { isValid: boolean; normalizedDate: Date | null } {
+  validateAndNormalizeTime(date: Date): {
+    isValid: boolean;
+    normalizedDate: Date | null;
+  } {
     if (!this.currentDateAdapter) {
       return { isValid: false, normalizedDate: null };
     }
- 
+
     let isValid = true;
     let normalizedDate = this.currentDateAdapter.clone(date);
 
@@ -841,14 +1032,21 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
       // Try to find nearest valid time within the same day
       const currentMinutes = date.getHours() * 60 + date.getMinutes();
-      const maxForwardMinutes = (24 * 60) - currentMinutes;
+      const maxForwardMinutes = 24 * 60 - currentMinutes;
       let validTimeFound = false;
 
       // Check forward
       for (let i = 1; i <= maxForwardMinutes; i++) {
         const nextTime = this.currentDateAdapter.clone(date);
-        nextTime.setHours(Math.floor((currentMinutes + i) / 60), (currentMinutes + i) % 60, 0);
-        if (nextTime.getTime() <= endOfDay.getTime() && !this.isTimeDisabled(nextTime)) {
+        nextTime.setHours(
+          Math.floor((currentMinutes + i) / 60),
+          (currentMinutes + i) % 60,
+          0,
+        );
+        if (
+          nextTime.getTime() <= endOfDay.getTime() &&
+          !this.isTimeDisabled(nextTime)
+        ) {
           normalizedDate = nextTime;
           validTimeFound = true;
           break;
@@ -859,8 +1057,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       if (!validTimeFound)
         for (let i = 1; i < currentMinutes; i++) {
           const prevTime = this.currentDateAdapter.clone(date);
-          prevTime.setHours(Math.floor((currentMinutes - i) / 60), (currentMinutes - i) % 60, 0);
-          if (prevTime.getTime() >= startOfDay.getTime() && !this.isTimeDisabled(prevTime)) {
+          prevTime.setHours(
+            Math.floor((currentMinutes - i) / 60),
+            (currentMinutes - i) % 60,
+            0,
+          );
+          if (
+            prevTime.getTime() >= startOfDay.getTime() &&
+            !this.isTimeDisabled(prevTime)
+          ) {
             normalizedDate = prevTime;
             break;
           }
@@ -871,40 +1076,47 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
         normalizedDate = startOfDay;
       }
     }
- 
+
     return { isValid: isValid, normalizedDate };
   }
 
   parseDisabledDates(): Date[] {
-    return this.disabledDates.map(date => {
-      if (date instanceof Date) {
-        return this.currentDateAdapter.startOfDay(date);
-      }
-      const parsedDate = this.currentDateAdapter.parse(date, this.extractDateFormat(this.format));
-      return parsedDate || null;
-    }).filter(date => date !== null) as Date[];
+    return this.disabledDates()
+      .map((date) => {
+        if (date instanceof Date) {
+          return this.currentDateAdapter.startOfDay(date);
+        }
+        const parsedDate = this.currentDateAdapter.parse(
+          date,
+          this.extractDateFormat(this.format),
+        );
+        return parsedDate || null;
+      })
+      .filter((date) => date !== null) as Date[];
   }
-  
+
   isDateDisabled(date: Date): boolean {
     if (!date) return false;
-  
+
     const dateToCheck = this.currentDateAdapter.startOfDay(date);
     // Check if date is in disabled dates array
     const parsedDisabledDates = this.parseDisabledDates();
-    const isDisabledDate = parsedDisabledDates.some(disabledDate => 
-      this.currentDateAdapter.isSameDay(dateToCheck, disabledDate)
+    const isDisabledDate = parsedDisabledDates.some((disabledDate) =>
+      this.currentDateAdapter.isSameDay(dateToCheck, disabledDate),
     );
-  
+
     // Check custom filter function if provided
-    const isFilterDisabled = this.disabledDatesFilter ? 
-      this.disabledDatesFilter(dateToCheck) : 
-      false;
-  
+    const disabledDatesFilter = this.disabledDatesFilter();
+    const isFilterDisabled = disabledDatesFilter
+      ? disabledDatesFilter(dateToCheck)
+      : false;
+
     return isDisabledDate || isFilterDisabled;
   }
 
   isTimeDisabled(date: Date) {
-    return this.disabledTimesFilter ? this.disabledTimesFilter(date) : false;
+    const disabledTimesFilter = this.disabledTimesFilter();
+    return disabledTimesFilter ? disabledTimesFilter(date) : false;
   }
 
   // ========== Date Validation Methods (continued) ==========
@@ -920,7 +1132,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   getFormatForMode(): string {
-    switch (this.mode) {
+    switch (this.mode()) {
       case 'year':
         return 'yyyy';
       case 'month':
@@ -932,16 +1144,18 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Overlay Position Methods ==========
   setPlacement(placement: Placement): void {
-    const position: ConnectionPositionPair = DATE_PICKER_POSITION_MAP[placement];
+    const position: ConnectionPositionPair =
+      DATE_PICKER_POSITION_MAP[placement];
     this.overlayPositions = [position, ...DEFAULT_DATE_PICKER_POSITIONS];
     this.currentPositionX = position.originX;
     this.currentPositionY = position.originY;
   }
 
   onPositionChange(position: ConnectedOverlayPositionChange): void {
-    if (this.currentPositionX !== position.connectionPair.originX ||
-        this.currentPositionY !== position.connectionPair.originY)
-    {
+    if (
+      this.currentPositionX !== position.connectionPair.originX ||
+      this.currentPositionY !== position.connectionPair.originY
+    ) {
       this.currentPositionX = position.connectionPair.originX;
       this.currentPositionY = position.connectionPair.originY;
       this.cdref.markForCheck();
@@ -957,7 +1171,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     this.onTouch();
     if (
       !this.elementRef.nativeElement.contains(event.relatedTarget as Node) &&
-      !this.datePickerPopup?.el.nativeElement.contains(event.relatedTarget as Node)
+      !this.datePickerPopup()?.el.nativeElement.contains(
+        event.relatedTarget as Node,
+      )
     ) {
       this.close();
     }
@@ -965,13 +1181,13 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   onInputBlur(inputType: 'start' | 'end' | null, event: Event): void {
     const inputValue = this.getInputValue(inputType);
-    
+
     if (typeof inputValue === 'string' && !this.isOpen) {
       const correctedValue = this.validateAndCorrectInput(inputValue);
       if (correctedValue !== inputValue) {
         if (inputValue) {
           this.handleCorrectedValue(inputType, correctedValue);
-        } else if (!this.allowEmpty) {
+        } else if (!this.allowEmpty()) {
           this.handleCorrectedValue(inputType, correctedValue);
         } else {
           this.selectedDate = null;
@@ -981,15 +1197,15 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       this.onBlur.emit({
         input: inputType,
         event,
-        value: correctedValue
+        value: correctedValue,
       });
     }
   }
 
   getInputValue(inputType: 'start' | 'end' | null): string | undefined {
-    if (this.isRange) {
-      return inputType === 'start' 
-        ? this.form.get('startDateInput')?.value 
+    if (this.isRange()) {
+      return inputType === 'start'
+        ? this.form.get('startDateInput')?.value
         : this.form.get('endDateInput')?.value;
     }
     return this.form.get('dateInput')?.value;
@@ -1006,9 +1222,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     return this.currentDateAdapter.format(date, this.format);
   }
 
-  handleCorrectedValue(inputType: 'start' | 'end' | null, correctedValue: string): void {
+  handleCorrectedValue(
+    inputType: 'start' | 'end' | null,
+    correctedValue: string,
+  ): void {
     this.isInternalChange = true;
-    if (this.isRange) {
+    if (this.isRange()) {
       this.handleRangeCorrectedValue(inputType, correctedValue);
     } else {
       this.handleSingleCorrectedValue(correctedValue);
@@ -1016,36 +1235,53 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     this.isInternalChange = false;
   }
 
-  handleRangeCorrectedValue(inputType: 'start' | 'end' | null, correctedValue: string): void {
+  handleRangeCorrectedValue(
+    inputType: 'start' | 'end' | null,
+    correctedValue: string,
+  ): void {
     if (inputType === 'start') {
       this.form.get('startDateInput')?.setValue(correctedValue);
-      this.selectedStartDate = this.currentDateAdapter.parse(correctedValue, this.format);
+      this.selectedStartDate = this.currentDateAdapter.parse(
+        correctedValue,
+        this.format,
+      );
     } else {
       this.form.get('endDateInput')?.setValue(correctedValue);
-      this.selectedEndDate = this.currentDateAdapter.parse(correctedValue, this.format);
+      this.selectedEndDate = this.currentDateAdapter.parse(
+        correctedValue,
+        this.format,
+      );
     }
-    
+
     if (this.selectedStartDate && this.selectedEndDate) {
       this.onChange({
-        start: this.currentDateAdapter.format(this.selectedStartDate, this.format),
-        end: this.currentDateAdapter.format(this.selectedEndDate, this.format)
+        start: this.currentDateAdapter.format(
+          this.selectedStartDate,
+          this.format,
+        ),
+        end: this.currentDateAdapter.format(this.selectedEndDate, this.format),
       });
     }
-    
-    if (this.datePickerPopup) {
-      this.datePickerPopup.selectedStartDate = this.selectedStartDate;
-      this.datePickerPopup.selectedEndDate = this.selectedEndDate;
-      this.datePickerPopup.generateCalendar();
+
+    const datePickerPopup = this.datePickerPopup();
+    if (datePickerPopup) {
+      datePickerPopup.selectedStartDate = this.selectedStartDate;
+      datePickerPopup.selectedEndDate = this.selectedEndDate;
+      datePickerPopup.generateCalendar();
     }
   }
 
   handleSingleCorrectedValue(correctedValue: string): void {
     this.form.get('dateInput')?.setValue(correctedValue);
-    this.selectedDate = this.currentDateAdapter.parse(correctedValue, this.format);
+    this.selectedDate = this.currentDateAdapter.parse(
+      correctedValue,
+      this.format,
+    );
     this.onChange(this.selectedDate);
-    
-    if (this.datePickerPopup) {
-      this.datePickerPopup.selectedDate = this.selectedDate;
+
+    const datePickerPopup = this.datePickerPopup();
+    if (datePickerPopup) {
+      datePickerPopup.selectedDate = this.selectedDate;
     }
   }
 
@@ -1053,9 +1289,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (this.suppressFocusOpen) {
       return;
     }
-    if (this.hideStateHelper == false){
+    if (this.hideStateHelper == false) {
       this.toggleDatePicker(inputType, event);
-      this.hideStateHelper = true
+      this.hideStateHelper = true;
     } else {
       this.hideStateHelper = false;
     }
@@ -1064,7 +1300,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   toggleDatePicker(inputType: 'start' | 'end' | null, event: Event): void {
     this.onFocus.emit({
       input: inputType,
-      event
+      event,
     });
     this.activeInput = inputType || '';
     this.dpService.activeInput$.next(this.activeInput);
@@ -1073,8 +1309,11 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   onInputKeydown(event: KeyboardEvent): void {
-    if ((!event.shiftKey && event.key === 'Tab') || (!event.shiftKey && event.key === 'Enter')) {
-      if (this.isRange) {
+    if (
+      (!event.shiftKey && event.key === 'Tab') ||
+      (!event.shiftKey && event.key === 'Enter')
+    ) {
+      if (this.isRange()) {
         return;
       }
       this.close();
@@ -1083,45 +1322,53 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   // ========== Update Methods ==========
   updateInputValue(): void {
-    if (this.isRange) {
+    if (this.isRange()) {
       if (this.selectedStartDate) {
-        this.form.get('startDateInput')?.setValue(
-          this.currentDateAdapter.format(this.selectedStartDate, this.format)
-        );
+        this.form
+          .get('startDateInput')
+          ?.setValue(
+            this.currentDateAdapter.format(this.selectedStartDate, this.format),
+          );
       }
       if (this.selectedEndDate) {
-        this.form.get('endDateInput')?.setValue(
-          this.currentDateAdapter.format(this.selectedEndDate, this.format)
-        );
+        this.form
+          .get('endDateInput')
+          ?.setValue(
+            this.currentDateAdapter.format(this.selectedEndDate, this.format),
+          );
       }
     } else if (this.selectedDate) {
-      this.form.get('dateInput')?.setValue(
-        this.currentDateAdapter.format(this.selectedDate, this.format)
-      );
+      this.form
+        .get('dateInput')
+        ?.setValue(
+          this.currentDateAdapter.format(this.selectedDate, this.format),
+        );
     }
   }
 
   updateDatePickerPopup(): void {
-    if (this.datePickerPopup) {
-      if (this.isRange) {
-        this.datePickerPopup.selectedStartDate = this.selectedStartDate;
-        this.datePickerPopup.selectedEndDate = this.selectedEndDate;
-        if (this.showTimePicker){
-          this.datePickerPopup.timePicker.updateFromDate(
-            this.activeInput == 'start'?
-            this.selectedStartDate:
-            this.selectedEndDate
+    const datePickerPopup = this.datePickerPopup();
+    if (datePickerPopup) {
+      const timePicker = datePickerPopup.timePicker();
+      if (this.isRange()) {
+        datePickerPopup.selectedStartDate = this.selectedStartDate;
+        datePickerPopup.selectedEndDate = this.selectedEndDate;
+        if (this.showTimePicker && timePicker) {
+          timePicker.updateFromDate(
+            this.activeInput == 'start'
+              ? this.selectedStartDate
+              : this.selectedEndDate,
           );
-          this.datePickerPopup.timePicker.scrollToTime()
+          timePicker.scrollToTime();
         }
       } else {
-        this.datePickerPopup.selectedDate = this.selectedDate;
-        if (this.showTimePicker){
-          this.datePickerPopup.timePicker.updateFromDate(this.selectedDate);
-          this.datePickerPopup.timePicker.scrollToTime();
+        datePickerPopup.selectedDate = this.selectedDate;
+        if (this.showTimePicker && timePicker) {
+          timePicker.updateFromDate(this.selectedDate);
+          timePicker.scrollToTime();
         }
       }
-      this.datePickerPopup.generateCalendar();
+      datePickerPopup.generateCalendar();
       this.cdref.detectChanges();
     }
   }
@@ -1129,7 +1376,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   convertDateToFormat(date: Date, fromType: CalendarType): any {
     if (!date) return null;
 
-    switch (this.valueFormat) {
+    switch (this.valueFormat()) {
       case 'date':
         return date;
       case 'jalali':
@@ -1148,37 +1395,41 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   writeValue(value: any): void {
     if (value) {
       this.isInternalChange = true;
-      
-      if (this.isRange && typeof value === 'object') {
+
+      if (this.isRange() && typeof value === 'object') {
         const startDate = this.parseIncomingValue(value.start);
         const endDate = this.parseIncomingValue(value.end);
-        
+
         if (startDate) {
           this.selectedStartDate = startDate;
-          this.form.get('startDateInput')?.setValue(
-            this.currentDateAdapter.format(startDate, this.format),
-            { emitEvent: false }
-          );
+          this.form
+            .get('startDateInput')
+            ?.setValue(this.currentDateAdapter.format(startDate, this.format), {
+              emitEvent: false,
+            });
         }
-        
+
         if (endDate) {
           this.selectedEndDate = endDate;
-          this.form.get('endDateInput')?.setValue(
-            this.currentDateAdapter.format(endDate, this.format),
-            { emitEvent: false }
-          );
+          this.form
+            .get('endDateInput')
+            ?.setValue(this.currentDateAdapter.format(endDate, this.format), {
+              emitEvent: false,
+            });
         }
       } else {
         const parsedDate = this.parseIncomingValue(value);
         if (parsedDate) {
           this.selectedDate = parsedDate;
-          this.form.get('dateInput')?.setValue(
-            this.currentDateAdapter.format(parsedDate, this.format),
-            { emitEvent: false }
-          );
+          this.form
+            .get('dateInput')
+            ?.setValue(
+              this.currentDateAdapter.format(parsedDate, this.format),
+              { emitEvent: false },
+            );
         }
       }
-      
+
       this.lastEmittedValue = value;
       this.isInternalChange = false;
       this.updateDatePickerPopup();
@@ -1252,7 +1503,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   }
 
   getModalTitle(): string {
-    return this.isRange ? this.lang.selectDateRange : this.getPlaceholder();
+    return this.isRange() ? this.lang()!.selectDateRange : this.getPlaceholder();
   }
 
   setupActiveInputSubscription(): void {
@@ -1260,9 +1511,13 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((active: any) => {
         this.activeInput = active;
-        if (active && this.rangePickerInputs) {
+        const rangePickerInputs = this.rangePickerInputs();
+        if (active && rangePickerInputs) {
           if (!this.isOpen)
-            this.origin = this.activeInput == 'start'? this.rangePickerInputs?.first: this.rangePickerInputs.last
+            this.origin =
+              this.activeInput == 'start'
+                ? rangePickerInputs?.at(0)!
+                : rangePickerInputs.at(-1)!;
           this.focus();
         }
       });
@@ -1273,10 +1528,12 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       fromEvent(this.elementRef.nativeElement, 'mousedown')
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((event: any) => {
-          if ((event.target as HTMLInputElement).tagName.toLowerCase() !== 'input') {
+          if (
+            (event.target as HTMLInputElement).tagName.toLowerCase() !== 'input'
+          ) {
             event.preventDefault();
           }
-        })
+        }),
     );
   }
 
@@ -1287,7 +1544,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     return this.currentDateAdapter.parse(value, this.format);
   }
 
-  parseValueFromFormat(value: string | Date, targetAdapter: DateAdapter<Date>): Date | null {
+  parseValueFromFormat(
+    value: string | Date,
+    targetAdapter: DateAdapter<Date>,
+  ): Date | null {
     if (!value) return null;
     if (value instanceof Date) return value;
 

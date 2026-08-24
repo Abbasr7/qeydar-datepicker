@@ -1,20 +1,19 @@
-import { Directive, Input, TemplateRef, isDevMode } from "@angular/core";
+import { Directive, TemplateRef, isDevMode, input, inject } from "@angular/core";
 
 @Directive({
     selector: '[Template],[qeydarTemplate]',
-    standalone: true,
     host: {}
 })
 export class CustomTemplate {
-    @Input() type: string | undefined;
+    template = inject<TemplateRef<any>>(TemplateRef);
 
-    @Input('Template') name: string | undefined;
-    @Input('qeydarTemplate') qeydarTemplateName: string | undefined;
+    readonly type = input<string>();
 
-    constructor(public template: TemplateRef<any>) {}
+    readonly name = input<string>(undefined, { alias: "Template" });
+    readonly qeydarTemplateName = input<string>(undefined, { alias: "qeydarTemplate" });
 
     getType(): string {
-        const templateType = this.name || this.qeydarTemplateName || this.type || '';
+        const templateType = this.name() || this.qeydarTemplateName() || this.type() || '';
         const supportedTypes = ['day', 'month', 'year', 'toolbar', 'header', 'footer', 'body'];
 
         if (isDevMode() && templateType && !supportedTypes.includes(templateType)) {
