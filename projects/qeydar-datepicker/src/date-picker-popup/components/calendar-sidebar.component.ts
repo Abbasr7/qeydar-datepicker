@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
 
 @Component({
@@ -85,6 +85,12 @@ export class CalendarSidebarComponent implements AfterViewInit {
 
   @ViewChild('itemSelector') itemSelector: ElementRef;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  markForCheck(): void {
+    this.cdr.markForCheck();
+  }
+  
   ngAfterViewInit(): void {}
 }
 

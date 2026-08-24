@@ -763,6 +763,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       id = this.yearList[0];
     }
 
+    this.sidebar?.markForCheck();
     this.cdr.detectChanges();
     this.scrollToSelectedItem(id);
   }
@@ -785,6 +786,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       id = this.yearList[0];
     }
 
+    this.sidebar?.markForCheck();
     this.cdr.detectChanges();
     this.scrollToSelectedItem(id);
   }
@@ -793,6 +795,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (this.isPrevMonthDisabled()) return;
     this.currentDate = this.calendarUtils.navigateToPrevMonth(this.currentDate, this.dateAdapter);
     this.generateCalendar();
+    this.sidebar?.markForCheck();
     this.scrollToSelectedItem(this.dateAdapter.getMonth(this.currentDate) + 1);
   }
 
@@ -800,6 +803,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (this.isNextMonthDisabled()) return;
     this.currentDate = this.calendarUtils.navigateToNextMonth(this.currentDate, this.dateAdapter);
     this.generateCalendar();
+    this.sidebar?.markForCheck();
     this.scrollToSelectedItem(this.dateAdapter.getMonth(this.currentDate) + 1);
   }
 
