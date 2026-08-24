@@ -491,6 +491,6 @@ export class MyPicker extends BaseDatePickerComponent {
 ---
 
 **تاریخ تکمیل:** 2024  
-**نسخه:** 2.0.0-alpha  
+**نسخه:** 3.0.0-alpha  
 **وضعیت:** ✅ تکمیل شده
 
