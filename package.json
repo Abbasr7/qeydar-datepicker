@@ -1,6 +1,6 @@
 {
   "name": "qeydar-datepicker",
-  "version": "1.3.2",
+  "version": "2.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://www.npmjs.com/package/@qeydar/datepicker" target="_blank">
-    <img src="https://img.shields.io/badge/Npm-v1.3.2-blue" alt="NPM Version" />
+    <img src="https://img.shields.io/badge/Npm-v2.0.0-blue" alt="NPM Version" />
   </a>
   <img src="https://img.shields.io/badge/Angular-%E2%89%A514.0.0-red" alt="Angular Version" />
 </div>
@@ -10,9 +10,10 @@
 A comprehensive package providing separate DatePicker and TimePicker components for Angular applications, with support for both Jalali (Persian) and Gregorian calendars.
 This package supports Angular 14 and above. Specific version compatibility:
 
-| Package Version | Angular Version |
-| --------------- | --------------- |
-| 1.x.x           | ≥14.0.0         |
+| Package Version | Angular Version | Description      |
+| --------------- | --------------- | ---------------- |
+| 1.x.x           | ≥14.0.0         |                  |
+| 2.x.x           | ≥14.0.0         | +custom template |
 
 ## Demo
 You can see the online [Demo](https://qeydar-datepicker-git-master-abbasr7s-projects.vercel.app/)
