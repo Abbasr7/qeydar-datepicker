@@ -1,10 +1,10 @@
-import { Directive, ElementRef, Inject, Input, OnDestroy, OnInit, Optional, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Directive, ElementRef, Inject, Input, OnDestroy, OnInit, Optional, Output, EventEmitter, ChangeDetectorRef, inject, DestroyRef } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter, DATE_ADAPTER, JalaliDateAdapter, GregorianDateAdapter } from '../date-adapter';
 import { CalendarType, DatepickerMode, Placement, RangePartType, ValueFormat } from '../utils/types';
 import { CustomLabels, DateRange, Lang_Locale, RangeInputLabels } from '../utils/models';
-import { QeydarDatePickerService, DestroyService } from '../date-picker.service';
+import { QeydarDatePickerService } from '../date-picker.service';
 import { DatePickerThemeService } from '../services/date-picker-theme.service';
 
 /**
@@ -93,7 +93,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   @Output() onOpenChange = new EventEmitter<boolean>();
 
   // ========== Protected Properties ==========
-  protected destroy$ = new Subject<void>();
+  protected readonly destroyRef = inject(DestroyRef);
   protected _minDate: any;
   protected _maxDate: any;
   protected _format = 'yyyy/MM/dd';
@@ -134,8 +134,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // Cleanup handled by takeUntilDestroyed
   }
 
   // ========== Abstract Methods (must be implemented by derived classes) ==========
@@ -193,15 +192,15 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   protected setupFormControls(): void {
     if (this.isRange) {
       this.form.get('startDateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value, 'start'));
       
       this.form.get('endDateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value, 'end'));
     } else {
       this.form.get('dateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value));
     }
   }
@@ -363,7 +362,9 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
       adjustedDate.setMinutes(date.getMinutes());
       adjustedDate.setSeconds(date.getSeconds());
       const { normalizedDate } = this.validateAndNormalizeTime(adjustedDate);
-      adjustedDate = normalizedDate;
+      if (normalizedDate) {
+        adjustedDate = normalizedDate;
+      }
     }
     return adjustedDate;
   }
@@ -583,7 +584,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
     return dateFormatMatch ? dateFormatMatch[0] : '';
   }
 
-  public getPlaceholder(inputType: string = null): string {
+  public getPlaceholder(inputType: string = ''): string {
     if (inputType === 'start') return this.lang.startDate;
     if (inputType === 'end') return this.lang.endDate;
 

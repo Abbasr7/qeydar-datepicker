@@ -10,7 +10,7 @@
  * - Min/Max time validation
  * - Custom styling
  */
-import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy, AfterViewInit, ViewContainerRef, TemplateRef } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy, AfterViewInit, ViewContainerRef, TemplateRef, inject, DestroyRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ConnectedOverlayPositionChange, OverlayModule } from '@angular/cdk/overlay';
 import { slideMotion } from '../utils/animation/slide';
@@ -27,6 +27,7 @@ import { PickerModalService } from '../modal/picker-modal.service';
 import { PickerModalOptions, PickerPresentation } from '../modal/picker-modal.types';
 import { PickerModalStylesComponent } from '../modal/picker-modal-styles.component';
 import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'qeydar-time-picker',
@@ -308,6 +309,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   private suppressFocusOpen = false;
   private suppressFocusTimer: ReturnType<typeof setTimeout> | null = null;
   private modalDismissalSubscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
   get isModalPresentation(): boolean {
     return !this.inline && this.presentation === 'modal';
@@ -410,14 +412,18 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     this.modalDismissalSubscription = new Subscription();
     // Backdrop click / Escape / click on the pane padding -> the service asks, we decide.
     this.modalDismissalSubscription.add(
-      this.pickerModal.closeRequested$.subscribe(() => {
-        this.close();
-        this.onTouched();
-      })
+      this.pickerModal.closeRequested$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.close();
+          this.onTouched();
+        })
     );
     // Fired after the leave animation AND after focus was restored to the trigger.
     this.modalDismissalSubscription.add(
-      this.pickerModal.closed$.subscribe(() => this.releaseFocusGuard())
+      this.pickerModal.closed$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.releaseFocusGuard())
     );
   }
 
@@ -705,13 +711,13 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     }
   }
 
-  // Validation methods
+// Validation methods
   validateAndUpdateTime(value: string): void {
     if (!value || !this.dateAdapter) {
       this.updateTimeDisplay();
       return;
     }
-  
+ 
     try {
       const parsedDate = this.dateAdapter.parse(value, this._displayFormat);
       if (!parsedDate) {
@@ -720,15 +726,19 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       }
 
       const { isValid, normalizedDate } = this.validateAndNormalizeTime(parsedDate);
+      if (!isValid || !normalizedDate) {
+        this.updateTimeDisplay();
+        return;
+      }
       const formattedTime = this.dateAdapter.format(normalizedDate, this._displayFormat);
       this.form.get('timeInput')?.setValue(formattedTime, { emitEvent: false });
       this.parseTimeString(normalizedDate);
-  
+ 
       const outputValue = this.valueType === 'date' ? normalizedDate : formattedTime;
       this._value = outputValue;
       this.onChange(outputValue);
       this.timeChange.emit(outputValue);
-  
+ 
     } catch (error) {
       console.error('Error normalizing time:', error);
       this.updateTimeDisplay();

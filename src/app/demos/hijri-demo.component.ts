@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { JsonPipe } from '@angular/common';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from './code-viewer.component';
 import { HijriDateAdapter } from '../adapters/hijri.adapter';
 
 @Component({
   selector: 'hijri-demo',
+  imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent, JsonPipe],
   template: `
     <div class="hijri-demo" dir="ltr">
       <div class="hijri-intro">

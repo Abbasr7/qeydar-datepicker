@@ -1,8 +1,12 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from './code-viewer.component';
 import { GregorianDateAdapter, JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
 
 @Component({
   selector: 'custom-render',
+  imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent],
   template: `
     <div class="custom-render-demo">
       <div class="custom-demo-grid">

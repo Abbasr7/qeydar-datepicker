@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from './code-viewer.component';
 
 interface DateRangeValue {
   start: Date;
@@ -7,6 +10,7 @@ interface DateRangeValue {
 
 @Component({
   selector: 'quick-demo',
+  imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent],
   template: `
     <div class="slot-demo quick-demo">
       <div class="slot-demo-head">

@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList, ViewEncapsulation, Inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, OnDestroy, ChangeDetectionStrategy, TemplateRef, QueryList, ViewEncapsulation, inject, DestroyRef } from '@angular/core';
 import { DateAdapter, GregorianDateAdapter, JalaliDateAdapter } from '../date-adapter';
 import { CustomLabels, DateRange, Lang_Locale, YearRange } from '../utils/models';
-import { DestroyService, QeydarDatePickerService } from '../date-picker.service';
+import { QeydarDatePickerService } from '../date-picker.service';
 import { DatepickerMode } from '../utils/types';
 import { TimePickerComponent } from '../time-picker/time-picker.component';
-import { Subscription, takeUntil } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIf, NgTemplateOutlet } from '@angular/common';
 import { CustomTemplate } from '../utils/template.directive';
 import { CalendarHeaderComponent } from './components/calendar-header.component';
@@ -155,7 +156,7 @@ import {
             [inline]="true"
             [disabledTimesFilter]="disabledTimesFilter"
             [cssClass]="'embedded-time-picker'"
-            [selectedDate]="selectedDate"
+            [selectedDate]="getSelectedDateOrToday()"
             (timeChange)="onTimeChange($event)"
           ></qeydar-time-picker>
         </div>
@@ -192,7 +193,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   @Input() maxDate: Date | null = null;
   @Input() cssClass = '';
   @Input() footerDescription = '';
-  @Input() activeInput: 'start' | 'end' | '' = null;
+  @Input() activeInput: 'start' | 'end' | '' = '';
   @Input() showSidebar = true;
   @Input() showToday: boolean;
   @Input() showTimePicker = false;
@@ -205,6 +206,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   private _templates: QueryList<CustomTemplate> | null = null;
   private templatesSubscription?: Subscription;
   private hasResolvedTemplates = false;
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input()
   set templates(value: QueryList<CustomTemplate> | null) {
@@ -215,7 +217,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     this.templatesSubscription?.unsubscribe();
     this._templates = value;
     this.templatesSubscription = value?.changes
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.resolveTemplates());
     if (this.hasResolvedTemplates || value) {
       this.resolveTemplates();
@@ -280,9 +282,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   readonly isRangeEndFn = this.isRangeEnd.bind(this);
   readonly isTodayFn = this.isToday.bind(this);
   readonly isDateDisabledFn = this.isDateDisabled.bind(this);
-  readonly getDayNumberFn = (date: Date): number => this.dateAdapter.getDate(date);
+  readonly getDayNumberFn = (date: Date): number => this.dateAdapter.getDate(date) ?? 0;
   readonly isActiveMonthNumberFn = (month: number): boolean =>
-    !!this.currentDate && month === this.dateAdapter.getMonth(this.currentDate) + 1;
+    !!this.currentDate && this.dateAdapter.getMonth(this.currentDate) !== null && month === this.dateAdapter.getMonth(this.currentDate)! + 1;
   readonly isMonthInRangeFn = this.isMonthInRange.bind(this);
   readonly isMonthRangeStartFn = this.isMonthRangeStart.bind(this);
   readonly isMonthRangeEndFn = this.isMonthRangeEnd.bind(this);
@@ -390,13 +392,16 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     return this.selectedDate || this.selectedStartDate || this.selectedEndDate || new Date();
   }
 
+  getSelectedDateOrToday(): Date {
+    return this.selectedDate || new Date();
+  }
+
   constructor(
     public el: ElementRef,
     public cdr: ChangeDetectorRef, 
     public dpService: QeydarDatePickerService,
     public jalali: JalaliDateAdapter,
     public gregorian: GregorianDateAdapter,
-    public destroy$: DestroyService,
     private calendarUtils: CalendarUtilsService,
     private validationStrategy: ValidationStrategyService,
     private selectionStrategy: SelectionStrategyService,
@@ -428,9 +433,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   private resolveTemplates(): void {
     this.hasResolvedTemplates = true;
     this.resolvedTemplates = {};
-    this.dayTemplate = undefined;
-    this.monthTemplate = undefined;
-    this.yearTemplate = undefined;
+    this.dayTemplate = null as any;
+    this.monthTemplate = null as any;
+    this.yearTemplate = null as any;
     this.toolbarTemplate = null;
     this.headerTemplate = null;
     this.footerTemplate = null;
@@ -505,7 +510,10 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   showMonthSelector(): void {
     this.viewMode = 'months';
     this.generateYearList(15);
-    this.scrollToSelectedItem(this.dateAdapter.getYear(this.getDate));
+    const year = this.dateAdapter.getYear(this.getDate);
+    if (year !== null) {
+      this.scrollToSelectedItem(year);
+    }
     this.cdr.markForCheck();
   }
 
@@ -549,12 +557,12 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     this.selectedEndDate = result.selectedEndDate;
     
     if (result.shouldEmit) {
-      if (this.activeInput === 'start') {
-        this.dateRangeSelected.emit({ start: this.selectedStartDate, end: null });
-      } else if (this.activeInput === 'end') {
+      if (this.activeInput === 'start' && this.selectedStartDate) {
+        this.dateRangeSelected.emit({ start: this.selectedStartDate, end: null } as DateRange);
+      } else if (this.activeInput === 'end' && this.selectedStartDate) {
         clearTimeout(this.timeoutId);
         this.timeoutId = setTimeout(() => {
-          this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate });
+          this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate } as DateRange);
         }, 300);
       }
     }
@@ -566,7 +574,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       if (this.isRange) {
         this.dpService.activeInput$.asObservable()
           .pipe(
-            takeUntil(this.destroy$)
+            takeUntilDestroyed(this.destroyRef)
           )
           .subscribe(active => {
             if (active == 'start') {
@@ -635,8 +643,8 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       this.dpService.activeInput$.next(result.activeInput);
     }
     
-    if (result.shouldEmit) {
-      this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate });
+    if (result.shouldEmit && this.selectedStartDate) {
+      this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate } as DateRange);
     }
 
     if (prevStartDate !== this.selectedStartDate || prevEndDate !== this.selectedEndDate)
@@ -655,92 +663,106 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (this.isMonthDisabled(month)) return;
 
     // Preserve the day when just navigating between modes; use day 1 only for mode finalization
-    let dayToUse = (this.mode === 'month' || closeAfterSelection) ? 1 : this.dateAdapter.getDate(this.currentDate);
+    const day = this.dateAdapter.getDate(this.currentDate);
+    let dayToUse = (this.mode === 'month' || closeAfterSelection) ? 1 : (day ?? 1);
 
     // Adjust day if it exceeds the number of days in the target month
     if (dayToUse > 1) {
       const year = this.dateAdapter.getYear(this.currentDate);
-      const tempDate = this.dateAdapter.createDate(year, month - 1, 1);
-      const daysInTargetMonth = this.dateAdapter.getNumDaysInMonth(tempDate);
-      dayToUse = Math.min(dayToUse, daysInTargetMonth);
+      if (year !== null) {
+        const tempDate = this.dateAdapter.createDate(year, month - 1, 1);
+        const daysInTargetMonth = this.dateAdapter.getNumDaysInMonth(tempDate);
+        dayToUse = Math.min(dayToUse, daysInTargetMonth);
+      }
     }
 
     // Create the new date and preserve existing time portion when available
-    let newDate = this.dateAdapter.createDate(
-      this.dateAdapter.getYear(this.currentDate),
-      month - 1,
-      dayToUse
-    );
+    const currentYear = this.dateAdapter.getYear(this.currentDate);
+    if (currentYear !== null) {
+      let newDate = this.dateAdapter.createDate(
+        currentYear,
+        month - 1,
+        dayToUse
+      );
 
-    const existingDate = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
-    if (existingDate) {
-      newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDate);
+      const existingDate = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
+      if (existingDate) {
+        newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDate);
+      }
+      this.currentDate = newDate;
+
+      if (this.isRange && this.mode === 'month') {
+        this.handleRangeSelection(this.currentDate);
+        return;
+      }
+
+      if (this.mode === 'month' || closeAfterSelection) {
+        this.selectedDate = this.currentDate;
+        this.dateSelected.emit(this.currentDate);
+        this.closeDatePicker();
+      } else {
+        this.viewMode = 'days';
+        this.generateCalendar();
+        this.cdr.detectChanges();
+      }
+
+      this.scrollToSelectedItem(month);
     }
-    this.currentDate = newDate;
-
-    if (this.isRange && this.mode === 'month') {
-      this.handleRangeSelection(this.currentDate);
-      return;
-    }
-
-    if (this.mode === 'month' || closeAfterSelection) {
-      this.selectedDate = this.currentDate;
-      this.dateSelected.emit(this.currentDate);
-      this.closeDatePicker();
-    } else {
-      this.viewMode = 'days';
-      this.generateCalendar();
-      this.cdr.detectChanges();
-    }
-
-    this.scrollToSelectedItem(month);
   }
 
   selectYear(year: number, sideSelector = false): void {
     if (this.isYearDisabled(year)) return;
 
     // Preserve day and month when just navigating between modes
-    let dayToUse = this.mode === 'year' ? 1 : this.dateAdapter.getDate(this.currentDate);
+    const day = this.dateAdapter.getDate(this.currentDate);
+    let dayToUse = this.mode === 'year' ? 1 : (day ?? 1);
     const monthToUse = this.dateAdapter.getMonth(this.currentDate);
 
     // Adjust day if it exceeds the number of days in the target month/year
-    if (dayToUse > 1) {
+    if (dayToUse > 1 && monthToUse !== null) {
       const tempDate = this.dateAdapter.createDate(year, monthToUse, 1);
       const daysInTargetMonth = this.dateAdapter.getNumDaysInMonth(tempDate);
       dayToUse = Math.min(dayToUse, daysInTargetMonth);
     }
 
     // Create the new date and preserve existing time portion when available
-    let newDate = this.dateAdapter.createDate(
-      year,
-      monthToUse,
-      dayToUse
-    );
+    if (monthToUse !== null) {
+      let newDate = this.dateAdapter.createDate(
+        year,
+        monthToUse,
+        dayToUse
+      );
 
-    const existingDateForYear = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
-    if (existingDateForYear) {
-      newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDateForYear);
-    }
-    this.currentDate = newDate;
+      const existingDateForYear = this.isRange ? (this.activeInput === 'start' ? this.selectedStartDate : this.selectedEndDate) : this.selectedDate;
+      if (existingDateForYear) {
+        newDate = this.selectionStrategy.applyTimeToDate(newDate, existingDateForYear);
+      }
+      this.currentDate = newDate;
 
-    if (this.isRange && this.mode === 'year') {
-      this.handleRangeSelection(this.currentDate);
-      return;
-    }
+      if (this.isRange && this.mode === 'year') {
+        this.handleRangeSelection(this.currentDate);
+        return;
+      }
 
-    if (this.mode === 'year') {
-      this.selectedDate = this.currentDate;
-      this.dateSelected.emit(this.currentDate);
-      this.closeDatePicker();
-      return;
-    }
+      if (this.mode === 'year') {
+        this.selectedDate = this.currentDate;
+        this.dateSelected.emit(this.currentDate);
+        this.closeDatePicker();
+        return;
+      }
 
-    if (sideSelector) {
-      this.currentDate = this.dateAdapter.setYear(this.selectedDate, year);
-      this.scrollToSelectedItem(year);
-    } else {
-      this.viewMode = 'months';
-      this.cdr.detectChanges();
+      if (sideSelector) {
+        if (this.selectedDate !== null) {
+          this.currentDate = this.dateAdapter.setYear(this.selectedDate, year);
+          this.scrollToSelectedItem(year);
+        }
+      } else {
+        const currentYear = this.dateAdapter.getYear(this.currentDate);
+        if (currentYear !== null) {
+          this.viewMode = 'months';
+          this.cdr.detectChanges();
+        }
+      }
     }
   }
 
@@ -752,7 +774,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       return;
     }
 
-    let id: number;
+    let id: number | null = null;
     if (this.viewMode === 'months') {
       this.currentDate = this.calendarUtils.navigateToPrevYear(this.currentDate, this.dateAdapter);
       id = this.dateAdapter.getYear(this.currentDate);
@@ -764,7 +786,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     }
 
     this.cdr.detectChanges();
-    this.scrollToSelectedItem(id);
+    if (id !== null) {
+      this.scrollToSelectedItem(id);
+    }
   }
 
   goNext(): void {
@@ -774,7 +798,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       return;
     }
 
-    let id: number;
+    let id: number | null = null;
     if (this.viewMode === 'months') {
       this.currentDate = this.calendarUtils.navigateToNextYear(this.currentDate, this.dateAdapter);
       id = this.dateAdapter.getYear(this.currentDate);
@@ -786,21 +810,29 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     }
 
     this.cdr.detectChanges();
-    this.scrollToSelectedItem(id);
+    if (id !== null) {
+      this.scrollToSelectedItem(id);
+    }
   }
 
   prevMonth(): void {
     if (this.isPrevMonthDisabled()) return;
     this.currentDate = this.calendarUtils.navigateToPrevMonth(this.currentDate, this.dateAdapter);
     this.generateCalendar();
-    this.scrollToSelectedItem(this.dateAdapter.getMonth(this.currentDate) + 1);
+    const month = this.dateAdapter.getMonth(this.currentDate);
+    if (month !== null) {
+      this.scrollToSelectedItem(month + 1);
+    }
   }
 
   nextMonth(): void {
     if (this.isNextMonthDisabled()) return;
     this.currentDate = this.calendarUtils.navigateToNextMonth(this.currentDate, this.dateAdapter);
     this.generateCalendar();
-    this.scrollToSelectedItem(this.dateAdapter.getMonth(this.currentDate) + 1);
+    const month = this.dateAdapter.getMonth(this.currentDate);
+    if (month !== null) {
+      this.scrollToSelectedItem(month + 1);
+    }
   }
 
   // ========== State Check Methods ==========
@@ -857,15 +889,19 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     const year = this.dateAdapter.getYear(this.currentDate);
     const startYear = this.dateAdapter.getYear(this.selectedStartDate);
     const endYear = this.dateAdapter.getYear(endDate);
-    const startMonth = this.dateAdapter.getMonth(this.selectedStartDate) + 1;
-    const endMonth = this.dateAdapter.getMonth(endDate) + 1;
+    const startMonth = this.dateAdapter.getMonth(this.selectedStartDate);
+    const endMonth = this.dateAdapter.getMonth(endDate);
+
+    if (year === null || startYear === null || endYear === null || startMonth === null || endMonth === null) {
+      return false;
+    }
 
     if (year < startYear || year > endYear) {
       return false;
     }
 
     if (startYear === endYear) {
-      return year === startYear && month > startMonth && month < endMonth;
+      return year === startYear && month > startMonth + 1 && month < endMonth + 1;
     }
 
     if (year === startYear) {
@@ -880,7 +916,9 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   isYearRangeStart(year: number): boolean {
-    return this.isRange && this.selectedStartDate && this.dateAdapter.getYear(this.selectedStartDate) === year;
+    if (!this.isRange || !this.selectedStartDate) return false;
+    const startYear = this.dateAdapter.getYear(this.selectedStartDate);
+    return startYear !== null && startYear === year;
   }
 
   isYearRangeEnd(year: number): boolean {
@@ -896,6 +934,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
     if (!endDate) return false;
     const startYear = this.dateAdapter.getYear(this.selectedStartDate);
     const endYear = this.dateAdapter.getYear(endDate);
+    if (startYear === null || endYear === null) return false;
     return year > startYear && year < endYear;
   }
 
@@ -917,7 +956,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   }
 
   isMonthDisabled(month: number): boolean {
-    const year = this.dateAdapter.getYear(this.currentDate);
+    const year = this.dateAdapter.getYear(this.currentDate) ?? new Date().getFullYear();
     return this.validationStrategy.isMonthDisabled(
       month, 
       year, 
@@ -990,13 +1029,16 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
   onMonthHover(month: number): void {
     if (!this.isRange || this.selectedEndDate || !this.selectedStartDate) return;
     const year = this.dateAdapter.getYear(this.currentDate);
+    if (year === null) return;
     const date = this.dateAdapter.createDate(year, month - 1, 1);
     this.tempEndDate = this.selectionStrategy.handleMouseEnter(date, this.selectedStartDate, this.selectedEndDate);
   }
 
   onYearHover(year: number): void {
     if (!this.isRange || this.selectedEndDate || !this.selectedStartDate) return;
-    const date = this.dateAdapter.createDate(year, this.dateAdapter.getMonth(this.currentDate), 1);
+    const month = this.dateAdapter.getMonth(this.currentDate);
+    if (month === null) return;
+    const date = this.dateAdapter.createDate(year, month, 1);
     this.tempEndDate = this.selectionStrategy.handleMouseEnter(date, this.selectedStartDate, this.selectedEndDate);
   }
 
@@ -1048,6 +1090,7 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
       date = this.selectedDate || this.selectedEndDate || this.selectedStartDate || new Date();
     }
     const currentYear = this.dateAdapter.getYear(date);
+    if (currentYear === null) return [];
     
     this.yearList = this.calendarUtils.generateYearList(currentYear, length);
     return this.yearList
@@ -1091,10 +1134,16 @@ export class DatePickerPopupComponent implements OnInit, OnChanges, AfterViewIni
 
   onOkClick(date?: Date) {
     if (this.isRange) {
-      this.dateRangeSelected.emit({ start: this.selectedStartDate, end: this.selectedEndDate });
-      this.closeDatePicker();
+      if (this.selectedStartDate !== null) {
+        this.dateRangeSelected.emit({ 
+          start: this.selectedStartDate, 
+          end: this.selectedEndDate 
+        });
+      }
+      this.closeDatePicker()
     } else {
-      this.dateSelected.emit(date || this.selectedDate);
+      const d = date || this.selectedDate;
+      this.dateSelected.emit(d!);
       this.closeDatePicker();
     }
   }

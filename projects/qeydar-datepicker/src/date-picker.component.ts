@@ -1,4 +1,4 @@
-import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter, Renderer2, ChangeDetectorRef, Inject, AfterViewInit, ViewChildren, QueryList, NgZone, OnDestroy, ChangeDetectionStrategy, TemplateRef, ContentChildren, Optional, ViewContainerRef, inject, DestroyRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, AbstractControl, ValidationErrors, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { slideMotion } from './utils/animation/slide';
 import { DateAdapter, JalaliDateAdapter, GregorianDateAdapter, DATE_ADAPTER, provideDateAdapter } from './date-adapter';
@@ -7,8 +7,9 @@ import { DatePickerPopupComponent } from './date-picker-popup/date-picker-popup.
 import { ConnectedOverlayPositionChange, ConnectionPositionPair, HorizontalConnectionPos, OverlayModule, VerticalConnectionPos } from '@angular/cdk/overlay';
 import { DATE_PICKER_POSITION_MAP, DEFAULT_DATE_PICKER_POSITIONS, NzConnectedOverlayDirective } from './utils/overlay/overlay';
 import { DOCUMENT, NgIf, NgTemplateOutlet } from '@angular/common';
-import { DestroyService, QeydarDatePickerService } from './date-picker.service';
-import { fromEvent, takeUntil } from 'rxjs';
+import { QeydarDatePickerService } from './date-picker.service';
+import { fromEvent } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CalendarType, DatepickerMode, Placement, RangePartType, ValueFormat } from './utils/types';
 import { DateMaskDirective } from './utils/input-mask.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
@@ -314,7 +315,6 @@ import { CustomTemplate } from './utils/template.directive';
     PickerModalStylesComponent
   ],
   providers: [
-    DestroyService,
     QeydarDatePickerService,
     PickerModalService,
     {
@@ -431,13 +431,14 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     return this.valueFormat == 'jalali'? this.jalali: this.gregorian;
   }
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     public fb: FormBuilder,
     public elementRef: ElementRef,
     public renderer: Renderer2,
     public cdref: ChangeDetectorRef,
     public dpService: QeydarDatePickerService,
-    public destroy$: DestroyService,
     public ngZone: NgZone,
     public jalali: JalaliDateAdapter,
     public gregorian: GregorianDateAdapter,
@@ -470,8 +471,6 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     if (this.suppressFocusTimer !== null) {
       clearTimeout(this.suppressFocusTimer);
     }
-    this.destroy$.next();
-    this.destroy$.complete();
     document.removeEventListener('click', this.documentClickListener);
   }
 
@@ -525,10 +524,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   // ========== Form Control Methods ==========
   setupFormControls(): void {
     if (this.isRange) {
-      this.form.get('startDateInput')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => this.onInputChange(value, 'start'));
-      this.form.get('endDateInput')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => this.onInputChange(value, 'end'));
+      this.form.get('startDateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value, 'start'));
+      this.form.get('endDateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value, 'end'));
     } else {
-      this.form.get('dateInput')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => this.onInputChange(value));
+      this.form.get('dateInput')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.onInputChange(value));
     }
   }
 
@@ -740,7 +739,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
     const activeInputElement = this.getInput(this.activeInput);
     if (this.document.activeElement !== activeInputElement) {
       activeInputElement?.focus();
-      const length = activeInputElement?.value?.length;
+      const length = activeInputElement?.value?.length ?? 0;
       activeInputElement?.setSelectionRange(length, length);
     }
   }
@@ -757,7 +756,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       : this.datePickerInput?.nativeElement;
   }
 
-  getPlaceholder(inputType: string = null): string {
+  getPlaceholder(inputType: string = ''): string {
     if (inputType === 'start') return this.lang.startDate;
     if (inputType === 'end') return this.lang.endDate;
 
@@ -798,7 +797,9 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       adjustedDate.setMinutes(date.getMinutes());
       adjustedDate.setSeconds(date.getSeconds());
       let { normalizedDate } = this.validateAndNormalizeTime(adjustedDate);
-      adjustedDate = normalizedDate;
+      if (normalizedDate) {
+        adjustedDate = normalizedDate;
+      }
     }
     return adjustedDate;
   }
@@ -1065,7 +1066,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
       input: inputType,
       event
     });
-    this.activeInput = inputType;
+    this.activeInput = inputType || '';
     this.dpService.activeInput$.next(this.activeInput);
     this.open();
     this.cdref.detectChanges();
@@ -1213,7 +1214,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   setupModalDismissal(): void {
     // Backdrop click / Escape / click on the pane padding -> the service asks, we decide.
     this.pickerModal.closeRequested$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.close();
         this.onTouch();
@@ -1221,7 +1222,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
     // Fired after the leave animation AND after focus was restored to the trigger.
     this.pickerModal.closed$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.releaseFocusGuard());
   }
 
@@ -1256,10 +1257,10 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
 
   setupActiveInputSubscription(): void {
     this.dpService.activeInput$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((active: any) => {
         this.activeInput = active;
-        if (active) {
+        if (active && this.rangePickerInputs) {
           if (!this.isOpen)
             this.origin = this.activeInput == 'start'? this.rangePickerInputs?.first: this.rangePickerInputs.last
           this.focus();
@@ -1270,7 +1271,7 @@ export class DatePickerComponent implements ControlValueAccessor, OnInit, OnChan
   setupMouseDownEventHandler(): void {
     this.ngZone.runOutsideAngular(() =>
       fromEvent(this.elementRef.nativeElement, 'mousedown')
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((event: any) => {
           if ((event.target as HTMLInputElement).tagName.toLowerCase() !== 'input') {
             event.preventDefault();

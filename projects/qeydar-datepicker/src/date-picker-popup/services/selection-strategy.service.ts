@@ -14,7 +14,7 @@ export class SelectionStrategyService {
     selectedDate: Date | null,
     dateAdapter: DateAdapter<Date>
   ): boolean {
-    return selectedDate && dateAdapter.isSameDay(date, selectedDate);
+    return !!selectedDate && dateAdapter.isSameDay(date, selectedDate);
   }
 
   /**
@@ -25,7 +25,7 @@ export class SelectionStrategyService {
     selectedStartDate: Date | null,
     dateAdapter: DateAdapter<Date>
   ): boolean {
-    return selectedStartDate && dateAdapter.isSameDay(date, selectedStartDate);
+    return !!selectedStartDate && dateAdapter.isSameDay(date, selectedStartDate);
   }
 
   /**
@@ -36,7 +36,7 @@ export class SelectionStrategyService {
     selectedEndDate: Date | null,
     dateAdapter: DateAdapter<Date>
   ): boolean {
-    return selectedEndDate && dateAdapter.isSameDay(date, selectedEndDate);
+    return !!selectedEndDate && dateAdapter.isSameDay(date, selectedEndDate);
   }
 
   /**
@@ -54,6 +54,7 @@ export class SelectionStrategyService {
     }
 
     const endDate = selectedEndDate || tempEndDate;
+    if (!endDate) return false;
     return (
       dateAdapter.isAfter(date, selectedStartDate) &&
       dateAdapter.isBefore(date, endDate)

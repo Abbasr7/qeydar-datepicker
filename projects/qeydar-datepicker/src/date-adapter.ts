@@ -43,7 +43,7 @@ import {
   isEqual,
   addMinutes
 } from 'date-fns';
-import { Injectable, InjectionToken, Provider } from '@angular/core';
+import { Injectable, InjectionToken, Provider, inject } from '@angular/core';
 import { CalendarType } from './utils/types';
 
 export interface DateAdapter<D> {
@@ -54,9 +54,9 @@ export interface DateAdapter<D> {
   addMonths(date: D, amount: number): D;
   addYears(date: D, amount: number): D;
   addHours(date: D, amount: number): D;
-  getYear(date: D): number|null;
-  getMonth(date: D): number|null;
-  getDate(date: D): number|null;
+  getYear(date: D): number | null;
+  getMonth(date: D): number | null;
+  getDate(date: D): number | null;
   getDayOfWeek(date: D): number;
   getMonthNames(style: 'long' | 'short' | 'narrow'): string[];
   getDateNames(): string[];
@@ -77,10 +77,10 @@ export interface DateAdapter<D> {
   isValidFormat(dateString: string, formatString: string): boolean;
   max(dates: D[]): D;
   setYear(date: D, year: number): D;
-  startOfDay (date: D): D;
-  getHours(date: D): number|null;
-  getMinutes(date: D): number|null;
-  getSeconds(date: D): number|null;
+  startOfDay(date: D): D;
+  getHours(date: D): number | null;
+  getMinutes(date: D): number | null;
+  getSeconds(date: D): number | null;
   setHours(date: D, hours: number): D;
   setMinutes(date: D, minutes: number): D;
   setSeconds(date: D, seconds: number): D;
@@ -95,10 +95,11 @@ export const DATE_ADAPTER = new InjectionToken<DateAdapter<Date>>('DateAdapter')
 export function provideDateAdapter(calendarType: CalendarType): Provider {
   return {
     provide: DATE_ADAPTER,
-    useFactory: (jalali: JalaliDateAdapter, gregorian: GregorianDateAdapter) => {
+    useFactory: (): DateAdapter<Date> => {
+      const jalali = inject(JalaliDateAdapter);
+      const gregorian = inject(GregorianDateAdapter);
       return calendarType === 'jalali' ? jalali : gregorian;
-    },
-    deps: [JalaliDateAdapter, GregorianDateAdapter]
+    }
   };
 }
 

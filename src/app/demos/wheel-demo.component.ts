@@ -1,9 +1,13 @@
 import { AfterViewChecked, Component, OnDestroy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DateAdapter, GregorianDateAdapter, JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
 import { BodyTemplateContext, FooterTemplateContext } from 'projects/qeydar-datepicker/src/public-api';
+import { DemoCodeViewerComponent } from './code-viewer.component';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
 
 @Component({
   selector: 'wheel-demo',
+  imports: [FormsModule, DemoCodeViewerComponent, QeydarDatePickerModule],
   template: `
     <div class="slot-demo wheel-demo">
       <div class="slot-demo-head">
@@ -404,7 +408,7 @@ export class WheelDemoComponent implements AfterViewChecked, OnDestroy {
 
   rootClass = `wheel-demo-root-${++WheelDemoComponent.uid}`;
 
-  private ctx: BodyTemplateContext = null;
+  private ctx: BodyTemplateContext | null = null;
   private syncKey = '';
   private recenterNeeded = false;
   private wasOpen = false;
@@ -585,10 +589,10 @@ export class WheelDemoComponent implements AfterViewChecked, OnDestroy {
   }
 
   private refresh(date: Date): void {
-    const year = this.adapter.getYear(date);
-    const month = this.adapter.getMonth(date) + 1;
-    const dim = this.adapter.getDaysInMonth(date);
-    const day = this.adapter.getDate(date);
+    const year = this.adapter.getYear(date) ?? new Date().getFullYear();
+    const month = (this.adapter.getMonth(date) ?? 0) + 1;
+    const dim = this.adapter.getDaysInMonth(date) ?? 31;
+    const day = this.adapter.getDate(date) ?? 1;
 
     const monthChanged = month !== this.lastMonth;
     const yearChanged = year !== this.lastYear;
@@ -624,9 +628,9 @@ export class WheelDemoComponent implements AfterViewChecked, OnDestroy {
     }
 
     const today = new Date();
-    this.todayYear = this.adapter.getYear(today);
-    this.todayMonth = this.adapter.getMonth(today) + 1;
-    this.todayDay = this.adapter.getDate(today);
+    this.todayYear = this.adapter.getYear(today) ?? new Date().getFullYear();
+    this.todayMonth = (this.adapter.getMonth(today) ?? 0) + 1;
+    this.todayDay = this.adapter.getDate(today) ?? 1;
   }
 
   private centerColumns(): void {
@@ -888,10 +892,10 @@ export class WheelDemoComponent implements AfterViewChecked {
   }
 
   private refresh(date: Date): void {
-    const year = this.adapter.getYear(date);
-    const month = this.adapter.getMonth(date) + 1;
-    const dim = this.adapter.getDaysInMonth(date);
-    const day = this.adapter.getDate(date);
+    const year = this.adapter.getYear(date) ?? new Date().getFullYear();
+    const month = (this.adapter.getMonth(date) ?? 0) + 1;
+    const dim = this.adapter.getDaysInMonth(date) ?? 31;
+    const day = this.adapter.getDate(date) ?? 1;
 
     const monthChanged = month !== this.lastMonth;
     const yearChanged = year !== this.lastYear;

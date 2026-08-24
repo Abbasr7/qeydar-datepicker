@@ -50,7 +50,7 @@ export class DateMaskDirective {
   }
 
   @HostListener('input', ['$event'])
-  onInput(event: InputEvent) {
+  onInput(event: Event) {
     if (this.disableInputMask)
       return;
 

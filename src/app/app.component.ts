@@ -1,11 +1,38 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { CalendarType, DATE_ADAPTER, DatepickerMode, GregorianDateAdapter, JalaliDateAdapter, PickerPresentation, RangeInputLabels, TimeValueType, ValueFormat } from 'projects/qeydar-datepicker/src/public-api';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { QuickDemoComponent } from './demos/quick-demo.component';
+import { HeroDemoComponent } from './demos/hero-demo.component';
+import { WheelDemoComponent } from './demos/wheel-demo.component';
+import { HijriDemoComponent } from './demos/hijri-demo.component';
+import { DisabledDates } from './demos/disabled/diabled-date';
+import { DisabledTimes } from './demos/disabled/diabled-time';
+import { CustomRender } from './demos/custom-render';
+import { MaterialRender } from './demos/material-render';
+import { DemoCodeViewerComponent } from './demos/code-viewer.component';
 
 type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    QeydarDatePickerModule,
+    QuickDemoComponent,
+    HeroDemoComponent,
+    WheelDemoComponent,
+    HijriDemoComponent,
+    DisabledDates,
+    DisabledTimes,
+    CustomRender,
+    MaterialRender,
+    DemoCodeViewerComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   animations: [

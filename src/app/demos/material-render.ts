@@ -1,4 +1,7 @@
 import { Component } from "@angular/core";
+import { FormsModule } from '@angular/forms';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from './code-viewer.component';
 import { GregorianDateAdapter, JalaliDateAdapter } from "projects/qeydar-datepicker/src/date-adapter";
 
 /**
@@ -16,6 +19,7 @@ import { GregorianDateAdapter, JalaliDateAdapter } from "projects/qeydar-datepic
  */
 @Component({
     selector: 'material-render',
+    imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent],
     template: `
         <div class="material-demo">
             <qeydar-date-picker

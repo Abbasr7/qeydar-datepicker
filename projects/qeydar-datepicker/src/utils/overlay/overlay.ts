@@ -8,12 +8,11 @@ import {
     CdkOverlayOrigin,
     ConnectedOverlayPositionChange,
     FlexibleConnectedPositionStrategyOrigin,
-    ConnectionPositionPair 
+    ConnectionPositionPair
 } from '@angular/cdk/overlay';
-import { coerceBooleanProperty, _isNumberValue } from '@angular/cdk/coercion';
-import { Directive, ElementRef, Input } from '@angular/core';
-import { takeUntil } from 'rxjs/operators';
-import { DestroyService } from '../../date-picker.service';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Directive, ElementRef, Input, inject, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export type SafeAny = any;
 
@@ -85,20 +84,19 @@ type Dimensions = Omit<ClientRect, 'x' | 'y' | 'toJSON'>;
 @Directive({
     selector: '[cdkConnectedOverlay][nzConnectedOverlay]',
     exportAs: 'nzConnectedOverlay',
-    standalone: true,
-    providers: [DestroyService]
+    standalone: true
 })
 export class NzConnectedOverlayDirective {
     @Input() @InputBoolean() nzArrowPointAtCenter: boolean = false;
+    private readonly destroyRef = inject(DestroyRef);
 
     constructor(
-        private readonly cdkConnectedOverlay: CdkConnectedOverlay,
-        private readonly nzDestroyService: DestroyService
+        private readonly cdkConnectedOverlay: CdkConnectedOverlay
     ) {
         this.cdkConnectedOverlay.backdropClass = 'nz-overlay-transparent-backdrop';
 
         this.cdkConnectedOverlay.positionChange
-            .pipe(takeUntil(this.nzDestroyService))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((position: ConnectedOverlayPositionChange) => {
                 if (this.nzArrowPointAtCenter) {
                     this.updateArrowPosition(position);
@@ -127,7 +125,7 @@ export class NzConnectedOverlayDirective {
             this.cdkConnectedOverlay.offsetY = offsetY;
             this.cdkConnectedOverlay.offsetX = offsetX;
             this.cdkConnectedOverlay.overlayRef.updatePosition();
-        }        
+        }
     }
 
     private getFlexibleConnectedPositionStrategyOrigin(): FlexibleConnectedPositionStrategyOrigin {
