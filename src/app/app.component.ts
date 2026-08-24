@@ -14,6 +14,7 @@ import {
   lang_En,
   lang_Fa,
   Lang_Locale,
+  PickerModalAnimation,
   PickerModalOptions,
   PickerPresentation,
   RangeInputLabels,
@@ -112,14 +113,32 @@ export class AppComponent implements OnInit {
   demoTsCode = '';
   pgLang = 'fa';
   lang_Locale: Lang_Locale = new lang_Fa();
-  modalOptions: PickerModalOptions = {
-    mobileSheet: true
-  }
+  modalAnimation: PickerModalAnimation = 'zoom';
+  modalMobileSheet = true;
+  modalHasBackdrop = true;
+  modalCloseOnEscape = true;
+  modalCloseOnBackdropClick = true;
+  modalRestoreFocus = true;
+  modalHideHeader = false;
+  modalOptions: PickerModalOptions = {};
 
   constructor(
     private jalali: JalaliDateAdapter,
     private gregorian: GregorianDateAdapter,
   ) {}
+
+  applyModalOptions(): void {
+    this.modalOptions = {
+      animation: this.modalAnimation,
+      mobileSheet: this.modalMobileSheet,
+      hasBackdrop: this.modalHasBackdrop,
+      closeOnEscape: this.modalCloseOnEscape,
+      closeOnBackdropClick: this.modalCloseOnBackdropClick,
+      restoreFocus: this.modalRestoreFocus,
+      hideHeader: this.modalHideHeader,
+    };
+    this.updateCode();
+  }
 
   ngOnInit(): void {
     this.updateCode();
@@ -181,13 +200,13 @@ export class AppComponent implements OnInit {
   [disabled]="disabled"
   [readOnly]="readOnly"
   [readOnlyInput]="readOnlyInput"
-  [presentation]="presentation"
   [lang]="lang_Locale"
+  [modalOptions]="modalOptions"
   [(ngModel)]="selectedDate"
 ></qeydar-date-picker>`;
 
     this.demoTsCode = `import { Component } from '@angular/core';
-import { CalendarType, DatepickerMode, lang_En, lang_Fa, Lang_Locale, PickerPresentation, ValueFormat } from '@qeydar/datepicker';
+import { CalendarType, DatepickerMode, lang_En, lang_Fa, Lang_Locale, PickerModalAnimation, PickerModalOptions, PickerPresentation, ValueFormat } from '@qeydar/datepicker';
 
 @Component({
   selector: 'app-date-example',
@@ -210,8 +229,16 @@ export class DateExampleComponent {
   disabled = ${this.disabled};
   readOnly = ${this.readOnly};
   readOnlyInput = ${this.readOnlyInput};
-  presentation: PickerPresentation = ${this.presentation};
   lang_Locale: Lang_Locale = ${this.pgLang === 'fa' ? 'new lang_Fa()' : 'new lang_En()'};
+  modalOptions: PickerModalOptions = {
+    animation: '${this.modalAnimation}',
+    mobileSheet: ${this.modalMobileSheet},
+    hasBackdrop: ${this.modalHasBackdrop},
+    closeOnEscape: ${this.modalCloseOnEscape},
+    closeOnBackdropClick: ${this.modalCloseOnBackdropClick},
+    restoreFocus: ${this.modalRestoreFocus},
+    hideHeader: ${this.modalHideHeader},
+  };
 }`;
   }
 

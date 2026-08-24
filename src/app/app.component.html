@@ -237,6 +237,104 @@
                 </div>
               </fieldset>
 
+              @if (presentation === 'modal') {
+              <fieldset>
+                <legend>Modal options</legend>
+                <div class="field-grid">
+                  <div class="form-group">
+                    <label for="modal-animation">Animation</label>
+                    <select
+                      id="modal-animation"
+                      [(ngModel)]="modalAnimation"
+                      (ngModelChange)="applyModalOptions()"
+                    >
+                      <option value="zoom">Zoom</option>
+                      <option value="slide-up">Slide up</option>
+                      <option value="fade">Fade</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="switch-grid">
+                  <div class="switch-field">
+                    <span>Mobile sheet</span
+                    ><label class="switch" for="modal-mobile-sheet"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalMobileSheet"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-mobile-sheet"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only"
+                        >Toggle bottom sheet on small screens</span
+                      ></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Backdrop</span
+                    ><label class="switch" for="modal-backdrop"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalHasBackdrop"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-backdrop"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle dimmed backdrop</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Close on Escape</span
+                    ><label class="switch" for="modal-escape"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalCloseOnEscape"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-escape"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle close on escape</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Close on backdrop click</span
+                    ><label class="switch" for="modal-backdrop-click"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalCloseOnBackdropClick"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-backdrop-click"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only"
+                        >Toggle close on backdrop click</span
+                      ></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Restore focus</span
+                    ><label class="switch" for="modal-restore-focus"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalRestoreFocus"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-restore-focus"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle focus restoration</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Hide header</span
+                    ><label class="switch" for="modal-hide-header"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalHideHeader"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-hide-header"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle modal title bar</span></label
+                    >
+                  </div>
+                </div>
+              </fieldset>
+              }
+
               <fieldset>
                 <legend>Labels and limits</legend>
                 <div class="field-grid">
@@ -817,9 +915,9 @@
       }
 
       <!-- Hijri calendar -->
+      @if (showPart === 'hijri') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'hijri'"
         aria-labelledby="hijri-page-title"
       >
         <div class="page-intro">
@@ -849,6 +947,7 @@
           <div class="example-preview"><hijri-demo></hijri-demo></div>
         </article>
       </section>
+    }
     </div>
   </main>
 </div>
