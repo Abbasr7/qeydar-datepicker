@@ -1,7 +1,7 @@
 /**
  * Time Picker Component
  * A customizable time picker that supports 12/24 hour formats, seconds, and multiple locales.
- * 
+ *
  * Features:
  * - 12/24 hour format
  * - Optional seconds
@@ -10,23 +10,62 @@
  * - Min/Max time validation
  * - Custom styling
  */
-import { Component, ElementRef, forwardRef, Input, OnInit, Output, EventEmitter, ViewChild, OnDestroy, HostListener, ChangeDetectorRef, OnChanges, SimpleChanges, ChangeDetectionStrategy, AfterViewInit, ViewContainerRef, TemplateRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ConnectedOverlayPositionChange, OverlayModule } from '@angular/cdk/overlay';
+import {
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectionStrategy,
+  AfterViewInit,
+  ViewContainerRef,
+  TemplateRef,
+  inject,
+  DestroyRef,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import {
+  ConnectedOverlayPositionChange,
+  OverlayModule,
+} from '@angular/cdk/overlay';
 import { slideMotion } from '../utils/animation/slide';
 import { Lang_Locale } from '../utils/models';
 import { QeydarDatePickerService } from '../date-picker.service';
-import { DateAdapter, GregorianDateAdapter, JalaliDateAdapter } from '../date-adapter';
+import {
+  DateAdapter,
+  GregorianDateAdapter,
+  JalaliDateAdapter,
+} from '../date-adapter';
 import { TimeConfig, TimeFormat, TimeValueType } from '../utils/types';
-import { DEFAULT_DATE_PICKER_POSITIONS, NzConnectedOverlayDirective } from "../utils/overlay/overlay"
-import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import {
+  DEFAULT_DATE_PICKER_POSITIONS,
+  NzConnectedOverlayDirective,
+} from '../utils/overlay/overlay';
+import { NgTemplateOutlet } from '@angular/common';
 import { DateMaskDirective } from '../utils/input-mask.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { A11yModule } from '@angular/cdk/a11y';
 import { PickerModalService } from '../modal/picker-modal.service';
-import { PickerModalOptions, PickerPresentation } from '../modal/picker-modal.types';
+import {
+  PickerModalOptions,
+  PickerPresentation,
+} from '../modal/picker-modal.types';
 import { PickerModalStylesComponent } from '../modal/picker-modal-styles.component';
 import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'qeydar-time-picker',
@@ -35,30 +74,47 @@ import { Subscription } from 'rxjs';
     <qeydar-picker-modal-styles></qeydar-picker-modal-styles>
     <div class="time-picker-wrapper" [formGroup]="form">
       <!-- Regular input mode -->
-      <ng-container *ngIf="!inline">
-        <div class="input-wrapper" [class.focus]="isOpen" [class.disabled]="disabled">
+      @if (!inline()) {
+        <div
+          class="input-wrapper"
+          [class.focus]="isOpen"
+          [class.disabled]="disabled()"
+        >
           <input
             #timePickerInput
             [qeydar-dateMask]="displayFormat"
-            [disableInputMask]="disableInputMask"
-            [class.disabled]="disabled"
+            [disableInputMask]="disableInputMask()"
+            [class.disabled]="disabled()"
             type="text"
             class="time-picker-input"
             [class.focus]="isOpen"
             formControlName="timeInput"
             (focus)="onFocusInput()"
             [placeholder]="placeholder"
-            [readonly]="readOnly || readOnlyInput"
-            [attr.disabled]="disabled? 'disabled':null"
-          >
-          <button *ngIf="showIcon" class="time-button" (click)="toggleTimePicker($event)" tabindex="-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
-            </svg>
-          </button>
+            [readonly]="readOnly() || readOnlyInput()"
+            [attr.disabled]="disabled() ? 'disabled' : null"
+          />
+          @if (showIcon()) {
+            <button
+              class="time-button"
+              (click)="toggleTimePicker($event)"
+              tabindex="-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#999"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </button>
+          }
         </div>
-
         <ng-template
           cdkConnectedOverlay
           nzConnectedOverlay
@@ -72,21 +128,21 @@ import { Subscription } from 'rxjs';
         >
           <ng-container *ngTemplateOutlet="timePickerContent"></ng-container>
         </ng-template>
-      </ng-container>
+      }
 
       <!-- Inline mode -->
-      <ng-container *ngIf="inline">
+      @if (inline()) {
         <ng-container *ngTemplateOutlet="timePickerContent"></ng-container>
-      </ng-container>
+      }
 
       <!-- Time Picker Content Template -->
       <ng-template #timePickerContent>
-        <div 
-          #popupWrapper 
-          [class]="'time-picker-popup ' + cssClass"
-          [@slideMotion]="'enter'" 
-          [class.inline]="inline"
-          [class.disabled]="disabled"
+        <div
+          #popupWrapper
+          [class]="'time-picker-popup ' + cssClass()"
+          [@slideMotion]="'enter'"
+          [class.inline]="inline()"
+          [class.disabled]="disabled()"
           style="position: relative"
           (click)="$event.stopPropagation()"
         >
@@ -95,80 +151,90 @@ import { Subscription } from 'rxjs';
               <!-- Hours -->
               <div class="time-column">
                 <div class="time-scroller">
-                  <button
-                    *ngFor="let hour of hours"
-                    [id]="'selector_h'+hour"
-                    [class.selected]="selectedTime.hour === hour"
-                    [class.disabled]="isHourDisabled(hour)"
-                    (click)="selectHour(hour)"
-                    type="button"
-                  >
-                    {{ hour.toString().padStart(2, '0') }}
-                  </button>
+                  @for (hour of hours; track hour) {
+                    <button
+                      [id]="'selector_h' + hour"
+                      [class.selected]="selectedTime.hour === hour"
+                      [class.disabled]="isHourDisabled(hour)"
+                      (click)="selectHour(hour)"
+                      type="button"
+                    >
+                      {{ hour.toString().padStart(2, '0') }}
+                    </button>
+                  }
                 </div>
               </div>
-              
+
               <div class="time-separator">:</div>
-              
+
               <!-- Minutes -->
               <div class="time-column">
                 <div class="time-scroller">
-                  <button
-                    *ngFor="let minute of minutes"
-                    [id]="'selector_m'+minute"
-                    [class.selected]="selectedTime.minute === minute"
-                    [class.disabled]="isMinuteDisabled(minute)"
-                    (click)="selectMinute(minute)"
-                    type="button"
-                  >
-                    {{ minute.toString().padStart(2, '0') }}
-                  </button>
+                  @for (minute of minutes; track minute) {
+                    <button
+                      [id]="'selector_m' + minute"
+                      [class.selected]="selectedTime.minute === minute"
+                      [class.disabled]="isMinuteDisabled(minute)"
+                      (click)="selectMinute(minute)"
+                      type="button"
+                    >
+                      {{ minute.toString().padStart(2, '0') }}
+                    </button>
+                  }
                 </div>
               </div>
 
               <!-- Seconds (if format includes seconds) -->
-              <ng-container *ngIf="showSeconds">
+              @if (showSeconds) {
                 <div class="time-separator">:</div>
                 <div class="time-column">
                   <div class="time-scroller">
-                    <button
-                      *ngFor="let second of seconds"
-                      [id]="'selector_s'+second"
-                      [class.selected]="selectedTime.second === second"
-                      [class.disabled]="isSecondDisabled(second)"
-                      (click)="selectSecond(second)"
-                      type="button"
-                    >
-                      {{ second.toString().padStart(2, '0') }}
-                    </button>
+                    @for (second of seconds; track second) {
+                      <button
+                        [id]="'selector_s' + second"
+                        [class.selected]="selectedTime.second === second"
+                        [class.disabled]="isSecondDisabled(second)"
+                        (click)="selectSecond(second)"
+                        type="button"
+                      >
+                        {{ second.toString().padStart(2, '0') }}
+                      </button>
+                    }
                   </div>
                 </div>
-              </ng-container>
-              
+              }
+
               <!-- AM/PM (only in 12-hour format) -->
-              <ng-container *ngIf="timeFormat === '12'">
+              @if (timeFormat === '12') {
                 <div class="time-column period">
-                  <button
-                    *ngFor="let period of periods"
-                    [class.selected]="selectedTime.period === period"
-                    (click)="selectPeriod(period)"
-                    type="button"
-                  >
-                    {{ period }}
-                  </button>
+                  @for (period of periods; track period) {
+                    <button
+                      [class.selected]="selectedTime.period === period"
+                      (click)="selectPeriod(period)"
+                      type="button"
+                    >
+                      {{ period }}
+                    </button>
+                  }
                 </div>
-              </ng-container>
+              }
             </div>
           </div>
-          
-          <div class="time-picker-footer" *ngIf="!inline">
-            <div class="footer-buttons">
-              <button class="now-btn" (click)="selectNow()" type="button">{{ lang.now }}</button>
+
+          @if (!inline()) {
+            <div class="time-picker-footer">
+              <div class="footer-buttons">
+                <button class="now-btn" (click)="selectNow()" type="button">
+                  {{ lang.now }}
+                </button>
+              </div>
+              <div class="footer-actions">
+                <button class="save-btn" (click)="save()" type="button">
+                  {{ lang.ok }}
+                </button>
+              </div>
             </div>
-            <div class="footer-actions">
-              <button class="save-btn" (click)="save()" type="button">{{ lang.ok }}</button>
-            </div>
-          </div>
+          }
         </div>
       </ng-template>
 
@@ -178,24 +244,38 @@ import { Subscription } from 'rxjs';
           role="dialog"
           aria-modal="true"
           [attr.aria-labelledby]="modalTitleId"
-          [attr.dir]="rtl ? 'rtl' : 'ltr'"
+          [attr.dir]="rtl() ? 'rtl' : 'ltr'"
           tabindex="-1"
           cdkTrapFocus
         >
           <span class="qeydar-picker-modal-handle" aria-hidden="true"></span>
-          <header class="qeydar-picker-modal-header" *ngIf="!modalOptions.hideHeader">
-            <h2 class="qeydar-picker-modal-title" [id]="modalTitleId">{{ lang.selectTime }}</h2>
-            <button
-              class="qeydar-picker-modal-close"
-              type="button"
-              [attr.aria-label]="lang.cancel"
-              (click)="close()"
-            >
-              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </header>
+          @if (!modalOptions().hideHeader) {
+            <header class="qeydar-picker-modal-header">
+              <h2 class="qeydar-picker-modal-title" [id]="modalTitleId">
+                {{ lang.selectTime }}
+              </h2>
+              <button
+                class="qeydar-picker-modal-close"
+                type="button"
+                [attr.aria-label]="lang.cancel"
+                (click)="close()"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 4L4 12M4 4l8 8"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            </header>
+          }
           <div class="qeydar-picker-modal-body">
             <ng-container *ngTemplateOutlet="timePickerContent"></ng-container>
           </div>
@@ -203,18 +283,15 @@ import { Subscription } from 'rxjs';
       </ng-template>
     </div>
   `,
-  styleUrls: ['./time-picker.component.scss'],
-  standalone: true,
+  styleUrl: './time-picker.component.scss',
   imports: [
-    NgIf,
-    NgFor,
     ReactiveFormsModule,
     NgTemplateOutlet,
     A11yModule,
     DateMaskDirective,
     OverlayModule,
     NzConnectedOverlayDirective,
-    PickerModalStylesComponent
+    PickerModalStylesComponent,
   ],
   providers: [
     QeydarDatePickerService,
@@ -222,34 +299,46 @@ import { Subscription } from 'rxjs';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => TimePickerComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
   host: {
-    '(click)': 'open()'
+    '(click)': 'open()',
+    '(keydown)': 'handleKeydown($event)',
   },
-  animations: [slideMotion]
+  animations: [slideMotion],
 })
-export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDestroy, OnChanges, AfterViewInit {
+export class TimePickerComponent
+  implements ControlValueAccessor, OnInit, OnDestroy, OnChanges, AfterViewInit
+{
+  fb = inject(FormBuilder);
+  elementRef = inject(ElementRef);
+  cdref = inject(ChangeDetectorRef);
+  datePickerService = inject(QeydarDatePickerService);
+  jalaliAdapter = inject(JalaliDateAdapter);
+  gregorianAdapter = inject(GregorianDateAdapter);
+  private viewContainerRef = inject(ViewContainerRef);
+  private pickerModal = inject(PickerModalService);
+
   @Input() placeholder?: string;
-  @Input() rtl = false;
-  @Input() placement: 'left' | 'right' = 'right';
-  @Input() minTime?: string;
-  @Input() maxTime?: string;
+  readonly rtl = input(false);
+  readonly placement = input<'left' | 'right'>('right');
+  readonly minTime = input<string>();
+  readonly maxTime = input<string>();
   @Input() lang!: Lang_Locale;
-  @Input() valueType: TimeValueType = 'string';
-  @Input() cssClass = '';
-  @Input() showIcon = true;
+  readonly valueType = input<TimeValueType>('string');
+  readonly cssClass = input('');
+  readonly showIcon = input(true);
   @Input() dateAdapter: DateAdapter<Date>;
-  @Input() inline = false;
-  @Input() presentation: PickerPresentation = 'popover';
-  @Input() modalOptions: PickerModalOptions = {};
-  @Input() disableInputMask = false;
-  @Input() disabled = false;
-  @Input() disabledTimesFilter: (date: Date) => boolean;
-  @Input() allowEmpty = true;
-  @Input() readOnly = false;
-  @Input() readOnlyInput = false;
+  readonly inline = input(false);
+  readonly presentation = input<PickerPresentation>('popover');
+  readonly modalOptions = input<PickerModalOptions>({});
+  readonly disableInputMask = input(false);
+  readonly disabled = input(false);
+  readonly disabledTimesFilter = input<(date: Date) => boolean>();
+  readonly allowEmpty = input(true);
+  readonly readOnly = input(false);
+  readonly readOnlyInput = input(false);
   @Input() set displayFormat(value: string) {
     this._displayFormat = value;
     this.showSeconds = value.toLowerCase().includes('s');
@@ -261,22 +350,22 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   get displayFormat(): string {
     return this._displayFormat;
   }
-  @Input() set selectedDate(date: Date){
+  @Input() set selectedDate(date: Date) {
     if (date) {
       this._selectedDate = date;
     }
   }
-  get selectedDate() : Date {
+  get selectedDate(): Date {
     return this._selectedDate;
   }
-  
 
-  @Output() timeChange = new EventEmitter<Date | string>();
-  @Output() openChange = new EventEmitter<boolean>();
+  readonly timeChange = output<Date | string>();
+  readonly openChange = output<boolean>();
 
-  @ViewChild('timePickerInput') timePickerInput!: ElementRef<HTMLInputElement>;
-  @ViewChild('modalContent') modalContent!: TemplateRef<unknown>;
-  @ViewChild('popupWrapper') popupWrapper!: ElementRef<HTMLDivElement>;
+  readonly timePickerInput =
+    viewChild<ElementRef<HTMLInputElement>>('timePickerInput');
+  readonly modalContent = viewChild<TemplateRef<unknown>>('modalContent');
+  readonly popupWrapper = viewChild<ElementRef<HTMLDivElement>>('popupWrapper');
 
   timeFormat: TimeFormat = '12';
   private _displayFormat = 'hh:mm a';
@@ -295,7 +384,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     hour: 12,
     minute: 0,
     second: 0,
-    period: ''
+    period: '',
   };
   isOpen = false;
   form: FormGroup;
@@ -308,21 +397,13 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   private suppressFocusOpen = false;
   private suppressFocusTimer: ReturnType<typeof setTimeout> | null = null;
   private modalDismissalSubscription?: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
 
   get isModalPresentation(): boolean {
-    return !this.inline && this.presentation === 'modal';
+    return !this.inline() && this.presentation() === 'modal';
   }
 
-  constructor(
-    public fb: FormBuilder,
-    public elementRef: ElementRef,
-    public cdref: ChangeDetectorRef,
-    public datePickerService: QeydarDatePickerService,
-    public jalaliAdapter: JalaliDateAdapter,
-    public gregorianAdapter: GregorianDateAdapter,
-    private viewContainerRef: ViewContainerRef,
-    private pickerModal: PickerModalService,
-  ) {
+  constructor() {
     this.dateAdapter = this.gregorianAdapter;
     this.initializeForm();
     this.initializeLocale();
@@ -336,12 +417,13 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     this.value = this.selectedDate;
 
     // Only add document click listener for non-inline mode
-    if (!this.inline) {
+    const inline = this.inline();
+    if (!inline) {
       document.addEventListener('click', this.handleDocumentClick);
     }
 
     // Auto-open for inline mode
-    if (this.inline) {
+    if (inline) {
       this.isOpen = true;
       this.scrollToTime();
     }
@@ -357,9 +439,11 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   ngAfterViewInit(): void {
-    if (!this.inline && this.timePickerInput) {
-      this.origin = this.timePickerInput;
-    } else if (this.inline) {
+    const inline = this.inline();
+    const timePickerInput = this.timePickerInput();
+    if (!inline && timePickerInput) {
+      this.origin = timePickerInput;
+    } else if (inline) {
       this.origin = this.elementRef;
     }
   }
@@ -369,14 +453,16 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.updateLocale();
     }
     if (changes['rtl'] && !changes['dateAdapter']) {
-      this.dateAdapter = this.rtl? this.jalaliAdapter: this.gregorianAdapter;
+      this.dateAdapter = this.rtl()
+        ? this.jalaliAdapter
+        : this.gregorianAdapter;
     }
   }
 
   // Initialization methods
   initializeForm(): void {
     this.form = this.fb.group({
-      timeInput: ['']
+      timeInput: [''],
     });
   }
 
@@ -387,14 +473,16 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   updateLocale(): void {
-    this.lang = this.rtl ? this.datePickerService.locale_fa : this.datePickerService.locale_en;
+    this.lang = this.rtl()
+      ? this.datePickerService.locale_fa
+      : this.datePickerService.locale_en;
     this.selectedTime.period = this.lang.am;
     this.periods = [this.lang.am, this.lang.pm];
     this.placeholder = this.lang.selectTime;
   }
 
   setupInputSubscription(): void {
-    this.form.get('timeInput')?.valueChanges.subscribe(value => {
+    this.form.get('timeInput')?.valueChanges.subscribe((value) => {
       if (!value) return;
 
       if (!this.isOpen) {
@@ -410,14 +498,18 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
     this.modalDismissalSubscription = new Subscription();
     // Backdrop click / Escape / click on the pane padding -> the service asks, we decide.
     this.modalDismissalSubscription.add(
-      this.pickerModal.closeRequested$.subscribe(() => {
-        this.close();
-        this.onTouched();
-      })
+      this.pickerModal.closeRequested$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.close();
+          this.onTouched();
+        }),
     );
     // Fired after the leave animation AND after focus was restored to the trigger.
     this.modalDismissalSubscription.add(
-      this.pickerModal.closed$.subscribe(() => this.releaseFocusGuard())
+      this.pickerModal.closed$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.releaseFocusGuard()),
     );
   }
 
@@ -449,14 +541,15 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   // Time management
   updateHourRange(): void {
     const format = this.getTimeFormatFromDisplayFormat(this._displayFormat);
-    this.hours = format === '12'
-      ? Array.from({ length: 12 }, (_, i) => i + 1)
-      : Array.from({ length: 24 }, (_, i) => i);
+    this.hours =
+      format === '12'
+        ? Array.from({ length: 12 }, (_, i) => i + 1)
+        : Array.from({ length: 24 }, (_, i) => i);
   }
 
   formatTime(date?: Date): string {
     if (!date && !this.dateAdapter) return '';
-    
+
     const currentDate = date || this.updateDateFromSelection();
     return this.dateAdapter.format(currentDate, this._displayFormat);
   }
@@ -464,7 +557,10 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   parseTimeString(value: string | Date): void {
     if (!this.dateAdapter) return;
 
-    const date = value instanceof Date ? value : this.dateAdapter.parse(value, this._displayFormat);
+    const date =
+      value instanceof Date
+        ? value
+        : this.dateAdapter.parse(value, this._displayFormat);
     if (!date) return;
 
     const hours = this.dateAdapter.getHours(date);
@@ -477,7 +573,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       hour: hours,
       minute: minutes,
       second: seconds,
-      period: hours >= 12 ? this.lang.pm : this.lang.am
+      period: hours >= 12 ? this.lang.pm : this.lang.am,
     };
 
     this.cdref.markForCheck();
@@ -487,7 +583,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   get value(): Date | string | null {
     return this._value;
   }
-  
+
   set value(val: Date | string | null) {
     this._value = val;
     this.updateFromValue(val);
@@ -515,7 +611,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
         hour: hours,
         minute: this.dateAdapter.getMinutes(date) ?? 0,
         second: this.dateAdapter.getSeconds(date) ?? 0,
-        period: hours >= 12 ? this.lang.pm : this.lang.am
+        period: hours >= 12 ? this.lang.pm : this.lang.am,
       };
     } else {
       this.resetSelection();
@@ -529,7 +625,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       hour: 0,
       minute: 0,
       second: 0,
-      period: this.lang.am
+      period: this.lang.am,
     };
     this.cdref.markForCheck();
   }
@@ -544,10 +640,11 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.value = value;
     } else if (value.trim()) {
       const date = this.selectedDate;
-      this.value = !isNaN(date.getTime()) && this.valueType === 'date' ? date : value;
+      this.value =
+        !isNaN(date.getTime()) && this.valueType() === 'date' ? date : value;
       this.parseTimeString(value);
     }
-    
+
     this.updateTimeDisplay();
     this.save(false);
   }
@@ -561,7 +658,6 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   // UI Event handlers
-  @HostListener('keydown', ['$event'])
   handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Tab' || event.key === 'Enter') {
       this.handleTimeInput();
@@ -573,7 +669,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   handleTimeInput(): void {
     const currentValue = this.form.get('timeInput')?.value;
-    if (currentValue || (!currentValue && !this.allowEmpty)) {
+    if (currentValue || (!currentValue && !this.allowEmpty())) {
       this.validateAndUpdateTime(currentValue);
     }
   }
@@ -586,7 +682,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.close();
       this.handleTimeInput();
     }
-  }
+  };
 
   onFocusInput(): void {
     if (this.suppressFocusOpen) {
@@ -604,7 +700,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
   // Picker operations
   open(): void {
-    if (this.inline || this.isOpen || this.disabled || this.readOnly) return;
+    if (this.inline() || this.isOpen || this.disabled() || this.readOnly())
+      return;
 
     this.isOpen = true;
     this.openChange.emit(true);
@@ -612,19 +709,19 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
     if (this.isModalPresentation) {
       this.pickerModal.open(
-        new TemplatePortal(this.modalContent, this.viewContainerRef),
-        this.modalOptions,
-        this.rtl
+        new TemplatePortal(this.modalContent()!, this.viewContainerRef),
+        this.modalOptions(),
+        this.rtl(),
       );
     }
     this.cdref.markForCheck();
   }
 
   close(): void {
-    if (this.inline || !this.isOpen) return;
+    if (this.inline() || !this.isOpen) return;
 
     this.cleanupTimeouts();
-    if (this.pickerModal.isOpen && this.modalOptions.restoreFocus !== false) {
+    if (this.pickerModal.isOpen && this.modalOptions().restoreFocus !== false) {
       this.suppressRestoredFocus();
     }
     this.isOpen = false;
@@ -639,7 +736,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.selectedTime.hour = hour;
       this.updateTimeDisplay();
       this.scrollToSelectedItem(`h${hour}`);
-      if (this.inline) this.save();
+      if (this.inline()) this.save();
     }
   }
 
@@ -648,7 +745,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.selectedTime.minute = minute;
       this.updateTimeDisplay();
       this.scrollToSelectedItem(`m${minute}`);
-      if (this.inline) this.save();
+      if (this.inline()) this.save();
     }
   }
 
@@ -657,7 +754,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.selectedTime.second = second;
       this.updateTimeDisplay();
       this.scrollToSelectedItem(`s${second}`);
-      if (this.inline) this.save();
+      if (this.inline()) this.save();
     }
   }
 
@@ -672,9 +769,9 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       hour: now.getHours(),
       minute: now.getMinutes(),
       second: now.getSeconds(),
-      period: now.getHours() >= 12 ? this.lang.pm : this.lang.am
+      period: now.getHours() >= 12 ? this.lang.pm : this.lang.am,
     };
-    
+
     this.updateTimeDisplay();
     this.scrollToTime();
     this.save();
@@ -686,21 +783,25 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
 
     if (!isValid || !normalizedDate) return;
 
-    const outputValue = this.valueType === 'date' 
-      ? normalizedDate 
-      : this.formatTime(normalizedDate);
+    const outputValue =
+      this.valueType() === 'date'
+        ? normalizedDate
+        : this.formatTime(normalizedDate);
 
-    const valueChanged = JSON.stringify(this._value) !== JSON.stringify(outputValue);
+    const valueChanged =
+      JSON.stringify(this._value) !== JSON.stringify(outputValue);
     if (valueChanged) {
       this._value = outputValue;
-      this.form.get('timeInput')?.setValue(this.formatTime(normalizedDate), { emitEvent: false });
-      
+      this.form
+        .get('timeInput')
+        ?.setValue(this.formatTime(normalizedDate), { emitEvent: false });
+
       this.onChange(outputValue);
       this.timeChange.emit(outputValue);
       this.cdref.markForCheck();
     }
 
-    if (close && !this.inline) {
+    if (close && !this.inline()) {
       this.close();
     }
   }
@@ -711,7 +812,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       this.updateTimeDisplay();
       return;
     }
-  
+
     try {
       const parsedDate = this.dateAdapter.parse(value, this._displayFormat);
       if (!parsedDate) {
@@ -719,16 +820,24 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
         return;
       }
 
-      const { isValid, normalizedDate } = this.validateAndNormalizeTime(parsedDate);
-      const formattedTime = this.dateAdapter.format(normalizedDate, this._displayFormat);
+      const { isValid, normalizedDate } =
+        this.validateAndNormalizeTime(parsedDate);
+      if (!isValid || !normalizedDate) {
+        this.updateTimeDisplay();
+        return;
+      }
+      const formattedTime = this.dateAdapter.format(
+        normalizedDate,
+        this._displayFormat,
+      );
       this.form.get('timeInput')?.setValue(formattedTime, { emitEvent: false });
       this.parseTimeString(normalizedDate);
-  
-      const outputValue = this.valueType === 'date' ? normalizedDate : formattedTime;
+
+      const outputValue =
+        this.valueType() === 'date' ? normalizedDate : formattedTime;
       this._value = outputValue;
       this.onChange(outputValue);
       this.timeChange.emit(outputValue);
-  
     } catch (error) {
       console.error('Error normalizing time:', error);
       this.updateTimeDisplay();
@@ -755,28 +864,34 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   isTimeDisabled(testDate: Date): boolean {
     if (!this.dateAdapter) return false;
 
-    if (this.minTime) {
-      const minDate = this.dateAdapter.parse(this.minTime, this._displayFormat);
+    const minTime = this.minTime();
+    if (minTime) {
+      const minDate = this.dateAdapter.parse(minTime, this._displayFormat);
       if (minDate && this.dateAdapter.isBefore(testDate, minDate)) {
         return true;
       }
     }
 
-    if (this.maxTime) {
-      const maxDate = this.dateAdapter.parse(this.maxTime, this._displayFormat);
+    const maxTime = this.maxTime();
+    if (maxTime) {
+      const maxDate = this.dateAdapter.parse(maxTime, this._displayFormat);
       if (maxDate && this.dateAdapter.isAfter(testDate, maxDate)) {
         return true;
       }
     }
 
-    return this.disabledTimesFilter ? this.disabledTimesFilter(testDate) : false;
+    const disabledTimesFilter = this.disabledTimesFilter();
+    return disabledTimesFilter ? disabledTimesFilter(testDate) : false;
   }
 
-  validateAndNormalizeTime(date: Date): { isValid: boolean; normalizedDate: Date | null } {
+  validateAndNormalizeTime(date: Date): {
+    isValid: boolean;
+    normalizedDate: Date | null;
+  } {
     if (!this.dateAdapter) {
       return { isValid: false, normalizedDate: null };
     }
-  
+
     let isValid = true;
     // Clone the date to avoid modifying the original
     let normalizedDate = this.dateAdapter.clone(date);
@@ -786,7 +901,7 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       for (let i = 1; i <= 48; i++) {
         const nextTime = this.dateAdapter.addMinutes(date, i * 30);
         const prevTime = this.dateAdapter.addMinutes(date, -i * 30);
-  
+
         if (!this.isTimeDisabled(nextTime)) {
           normalizedDate = nextTime;
           break;
@@ -796,13 +911,13 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
           break;
         }
       }
-  
+
       // If still disabled after trying to find valid time
       if (this.isTimeDisabled(normalizedDate)) {
         return { isValid: false, normalizedDate: null };
       }
     }
-  
+
     return { isValid: isValid, normalizedDate };
   }
 
@@ -812,10 +927,10 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
         ...this.selectedTime,
         hour,
         minute,
-        second: 0
+        second: 0,
       };
       const testDate = this.createDateWithTime(testConfig);
-      
+
       if (!this.isTimeDisabled(testDate)) {
         return false; // If any minute is enabled, hour is not fully disabled
       }
@@ -828,21 +943,21 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       const testConfig = {
         ...this.selectedTime,
         minute,
-        second: 0
+        second: 0,
       };
       const testDate = this.createDateWithTime(testConfig);
       return this.isTimeDisabled(testDate);
     }
-  
+
     // If showing seconds, check each second
     for (let second = 0; second < 60; second++) {
       const testConfig = {
         ...this.selectedTime,
         minute,
-        second
+        second,
       };
       const testDate = this.createDateWithTime(testConfig);
-      
+
       if (!this.isTimeDisabled(testDate)) {
         return false; // If any second is enabled, minute is not fully disabled
       }
@@ -876,20 +991,23 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       if (this.selectedTime.period === this.lang.am && hours === 12) hours = 0;
     }
 
-    let date = this._value instanceof Date ? 
-      this.dateAdapter.clone(this._value) : 
-      this.selectedDate;
+    let date =
+      this._value instanceof Date
+        ? this.dateAdapter.clone(this._value)
+        : this.selectedDate;
 
     date = this.dateAdapter.setHours(date, hours);
     date = this.dateAdapter.setMinutes(date, this.selectedTime.minute);
     date = this.dateAdapter.setSeconds(date, this.selectedTime.second);
-    
+
     return date;
   }
 
   updateTimeDisplay(): void {
     if (this.form) {
-      this.form.get('timeInput')?.setValue(this.formatTime(), { emitEvent: false });
+      this.form
+        .get('timeInput')
+        ?.setValue(this.formatTime(), { emitEvent: false });
     }
   }
 
@@ -900,13 +1018,21 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
   }
 
   // UI Update methods
-  async scrollToTime(){
-    await this.scrollToSelectedItem(`h${this.selectedTime.hour}`, 'auto'),
-    await this.scrollToSelectedItem(`m${this.selectedTime.minute}`, 'auto'),
-    this.showSeconds ? await this.scrollToSelectedItem(`s${this.selectedTime.second}`, 'auto') : '';
+  async scrollToTime() {
+    (await this.scrollToSelectedItem(`h${this.selectedTime.hour}`, 'auto'),
+      await this.scrollToSelectedItem(`m${this.selectedTime.minute}`, 'auto'),
+      this.showSeconds
+        ? await this.scrollToSelectedItem(
+            `s${this.selectedTime.second}`,
+            'auto',
+          )
+        : '');
   }
 
-  scrollToSelectedItem(id: string, behavior: ScrollBehavior = 'smooth'): Promise<boolean> {
+  scrollToSelectedItem(
+    id: string,
+    behavior: ScrollBehavior = 'smooth',
+  ): Promise<boolean> {
     this.cleanupTimeouts();
     return new Promise((resolve) => {
       if (!id) {
@@ -915,7 +1041,8 @@ export class TimePickerComponent implements ControlValueAccessor, OnInit, OnDest
       }
 
       this.timeoutId = window.setTimeout(() => {
-        const selectedElement = this.popupWrapper?.nativeElement.querySelector(`#selector_${id}`);
+        const selectedElement =
+          this.popupWrapper()?.nativeElement.querySelector(`#selector_${id}`);
         if (selectedElement) {
           selectedElement.scrollIntoView({ behavior, block: 'center' });
         }

@@ -97,8 +97,14 @@ export class ValidationStrategyService {
     dateFormat?: string
   ): boolean {
     // Check year boundaries
-    if (minDate && dateAdapter.getYear(minDate) > year) return true;
-    if (maxDate && dateAdapter.getYear(maxDate) < year) return true;
+    if (minDate) {
+      const minYear = dateAdapter.getYear(minDate);
+      if (minYear !== null && minYear > year) return true;
+    }
+    if (maxDate) {
+      const maxYear = dateAdapter.getYear(maxDate);
+      if (maxYear !== null && maxYear < year) return true;
+    }
 
     // Check if all months in year are disabled
     const firstOfMonth = dateAdapter.createDate(year, 0, 1);
@@ -139,8 +145,14 @@ export class ValidationStrategyService {
     disabledDatesFilter?: (date: Date) => boolean,
     dateFormat?: string
   ): boolean {
-    if (minDate && dateAdapter.getYear(minDate) > yearRange.end) return true;
-    if (maxDate && dateAdapter.getYear(maxDate) < yearRange.start) return true;
+    if (minDate) {
+      const minYear = dateAdapter.getYear(minDate);
+      if (minYear !== null && minYear > yearRange.end) return true;
+    }
+    if (maxDate) {
+      const maxYear = dateAdapter.getYear(maxDate);
+      if (maxYear !== null && maxYear < yearRange.start) return true;
+    }
 
     // Check if all years in range are disabled
     for (let year = yearRange.start; year <= yearRange.end; year++) {
@@ -178,6 +190,10 @@ export class ValidationStrategyService {
     const minMonth = dateAdapter.getMonth(minDate);
     const currentYear = dateAdapter.getYear(currentDate);
     const currentMonth = dateAdapter.getMonth(currentDate);
+
+    if (minYear === null || minMonth === null || currentYear === null || currentMonth === null) {
+      return false;
+    }
 
     switch (viewMode) {
       case 'days':
@@ -222,6 +238,10 @@ export class ValidationStrategyService {
     const currentYear = dateAdapter.getYear(currentDate);
     const currentMonth = dateAdapter.getMonth(currentDate);
 
+    if (maxYear === null || maxMonth === null || currentYear === null || currentMonth === null) {
+      return false;
+    }
+
     switch (viewMode) {
       case 'days':
         const nextMonthUnnorm = currentMonth + 1;
@@ -259,7 +279,7 @@ export class ValidationStrategyService {
         if (date instanceof Date) {
           return dateAdapter.startOfDay(date);
         }
-        const parsedDate = dateAdapter.parse(date, dateFormat);
+        const parsedDate = dateAdapter.parse(date, dateFormat || '');
         return parsedDate || null;
       })
       .filter((date) => date !== null) as Date[];

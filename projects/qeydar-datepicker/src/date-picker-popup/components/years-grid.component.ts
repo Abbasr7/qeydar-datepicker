@@ -1,51 +1,52 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, TemplateRef } from '@angular/core';
-import { NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, TemplateRef, input, output } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'qeydar-years-grid',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIf, NgFor, NgTemplateOutlet],
-  styleUrls: ['./years-grid.component.scss'],
+  imports: [NgTemplateOutlet],
+  styleUrl: './years-grid.component.scss',
   template: `
-    <div *ngIf="viewMode === 'years' || mode == 'year'" class="years">
-      <button
-        *ngFor="let year of yearList"
-        tabindex="-1"
-        [class.selected]="isActiveYear(year)"
-        [class.in-range]="isYearInRange(year)"
-        [class.range-start]="isYearRangeStart(year)"
-        [class.range-end]="isYearRangeEnd(year)"
-        [disabled]="isYearDisabled(year)"
-        (click)="selectYear.emit(year)"
-        (mouseenter)="mouseEnter.emit(year)"
-        (mouseleave)="mouseLeave.emit()"
-      >
-        <ng-container *ngIf="yearTemplate; else yearDefTemplate">
-          <ng-container *ngTemplateOutlet="$any(yearTemplate); context: { $implicit: year, year: year, isSelected: isActiveYear(year), isInRange: isYearInRange(year), isDisabled: isYearDisabled(year) }"></ng-container>
-        </ng-container>
-        <ng-template #yearDefTemplate>
-          {{ year }}
-        </ng-template>
-      </button>
-    </div>
-  `
+    @if (viewMode() === 'years' || mode() == 'year') {
+      <div class="years">
+        @for (year of yearList(); track year) {
+          <button
+            tabindex="-1"
+            [class.selected]="isActiveYear()(year)"
+            [class.in-range]="isYearInRange()(year)"
+            [class.range-start]="isYearRangeStart()(year)"
+            [class.range-end]="isYearRangeEnd()(year)"
+            [disabled]="isYearDisabled()(year)"
+            (click)="selectYear.emit(year)"
+            (mouseenter)="mouseEnter.emit(year)"
+            (mouseleave)="mouseLeave.emit()"
+            >
+            @if (yearTemplate(); as tpl) {
+              <ng-container *ngTemplateOutlet="$any(tpl); context: { $implicit: year, year: year, isSelected: isActiveYear()(year), isInRange: isYearInRange()(year), isDisabled: isYearDisabled()(year) }"></ng-container>
+            } @else {
+              {{ year }}
+            }
+          </button>
+        }
+      </div>
+    }
+    `
 })
 export class YearsGridComponent {
-  @Input() viewMode: 'days' | 'months' | 'years' = 'days';
-  @Input() mode: 'day' | 'month' | 'year' = 'day';
-  @Input() yearList: number[] = [];
-  @Input() yearTemplate: TemplateRef<any> | null = null;
+  readonly viewMode = input<'days' | 'months' | 'years'>('days');
+  readonly mode = input<'day' | 'month' | 'year'>('day');
+  readonly yearList = input<number[]>([]);
+  readonly yearTemplate = input<TemplateRef<any> | null>(null);
 
-  @Input() isActiveYear: (year: number) => boolean;
-  @Input() isYearInRange: (year: number) => boolean;
-  @Input() isYearRangeStart: (year: number) => boolean;
-  @Input() isYearRangeEnd: (year: number) => boolean;
-  @Input() isYearDisabled: (year: number) => boolean;
+  readonly isActiveYear = input.required<(year: number) => boolean>();
+  readonly isYearInRange = input.required<(year: number) => boolean>();
+  readonly isYearRangeStart = input.required<(year: number) => boolean>();
+  readonly isYearRangeEnd = input.required<(year: number) => boolean>();
+  readonly isYearDisabled = input.required<(year: number) => boolean>();
 
-  @Output() selectYear = new EventEmitter<number>();
-  @Output() mouseEnter = new EventEmitter<number>();
-  @Output() mouseLeave = new EventEmitter<void>();
+  readonly selectYear = output<number>();
+  readonly mouseEnter = output<number>();
+  readonly mouseLeave = output<void>();
 }
 
 

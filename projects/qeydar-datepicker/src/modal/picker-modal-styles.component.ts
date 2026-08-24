@@ -8,8 +8,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
 @Component({
   selector: 'qeydar-picker-modal-styles',
   template: '',
-  styleUrls: ['./picker-modal.style.css'],
+  styleUrl: './picker-modal.style.css',
   encapsulation: ViewEncapsulation.None,
-  standalone: true
 })
 export class PickerModalStylesComponent {}

@@ -1,10 +1,10 @@
-import { Directive, ElementRef, Inject, Input, OnDestroy, OnInit, Optional, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Directive, ElementRef, Inject, Input, OnDestroy, OnInit, Optional, ChangeDetectorRef, inject, DestroyRef, input, output, model } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter, DATE_ADAPTER, JalaliDateAdapter, GregorianDateAdapter } from '../date-adapter';
 import { CalendarType, DatepickerMode, Placement, RangePartType, ValueFormat } from '../utils/types';
 import { CustomLabels, DateRange, Lang_Locale, RangeInputLabels } from '../utils/models';
-import { QeydarDatePickerService, DestroyService } from '../date-picker.service';
+import { QeydarDatePickerService } from '../date-picker.service';
 import { DatePickerThemeService } from '../services/date-picker-theme.service';
 
 /**
@@ -34,30 +34,30 @@ export interface BaseDatePickerConfig {
 @Directive()
 export abstract class BaseDatePickerComponent implements ControlValueAccessor, OnInit, OnDestroy {
   // ========== Input Properties ==========
-  @Input() rtl = false;
-  @Input() mode: DatepickerMode = 'day';
-  @Input() isRange = false;
-  @Input() customLabels: Array<CustomLabels>;
-  @Input() calendarType: CalendarType = 'gregorian';
-  @Input() lang: Lang_Locale;
-  @Input() cssClass = '';
-  @Input() footerDescription = '';
-  @Input() rangeInputLabels: RangeInputLabels;
-  @Input() inputLabel: string;
-  @Input() placement: Placement = 'bottomRight';
-  @Input() disabled = false;
-  @Input() isInline = false;
-  @Input() showSidebar = true;
-  @Input() showToday = false;
-  @Input() valueFormat: ValueFormat = 'gregorian';
-  @Input() disableInputMask = false;
-  @Input() disabledDates: Array<Date | string> = [];
-  @Input() disabledDatesFilter: (date: Date) => boolean;
-  @Input() disabledTimesFilter: (date: Date) => boolean;
-  @Input() allowEmpty = false;
-  @Input() readOnly = false;
-  @Input() readOnlyInput = false;
-  @Input() dateAdapter: DateAdapter<Date> | null = null;
+  readonly rtl = input(false);
+  readonly mode = input<DatepickerMode>('day');
+  readonly isRange = input(false);
+  readonly customLabels = input<Array<CustomLabels>>();
+  readonly calendarType = input<CalendarType>('gregorian');
+  readonly lang = model<Lang_Locale>();
+  readonly cssClass = input('');
+  readonly footerDescription = input('');
+  readonly rangeInputLabels = input<RangeInputLabels>();
+  readonly inputLabel = input<string>();
+  readonly placement = input<Placement>('bottomRight');
+  readonly disabled = model(false);
+  readonly isInline = input(false);
+  readonly showSidebar = input(true);
+  readonly showToday = input(false);
+  readonly valueFormat = input<ValueFormat>('gregorian');
+  readonly disableInputMask = input(false);
+  readonly disabledDates = input<Array<Date | string>>([]);
+  readonly disabledDatesFilter = input<(date: Date) => boolean>();
+  readonly disabledTimesFilter = input<(date: Date) => boolean>();
+  readonly allowEmpty = input(false);
+  readonly readOnly = input(false);
+  readonly readOnlyInput = input(false);
+  readonly dateAdapter = input<DateAdapter<Date> | null>(null);
 
   @Input() set minDate(date: Date | string | null) {
     if (date) {
@@ -87,13 +87,13 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   // ========== Output Properties ==========
-  @Output() onFocus = new EventEmitter<any>();
-  @Output() onBlur = new EventEmitter<any>();
-  @Output() onChangeValue = new EventEmitter<any>();
-  @Output() onOpenChange = new EventEmitter<boolean>();
+  readonly onFocus = output<any>();
+  readonly onBlur = output<any>();
+  readonly onChangeValue = output<any>();
+  readonly onOpenChange = output<boolean>();
 
   // ========== Protected Properties ==========
-  protected destroy$ = new Subject<void>();
+  protected readonly destroyRef = inject(DestroyRef);
   protected _minDate: any;
   protected _maxDate: any;
   protected _format = 'yyyy/MM/dd';
@@ -134,8 +134,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // Cleanup handled by takeUntilDestroyed
   }
 
   // ========== Abstract Methods (must be implemented by derived classes) ==========
@@ -159,17 +158,18 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   protected initializeLanguage(): void {
-    this.lang = this.calendarType === 'jalali' 
+    this.lang.set(this.calendarType() === 'jalali' 
       ? this.dpService.locale_fa 
-      : this.dpService.locale_en;
-    this.dpService.locale = this.lang;
+      : this.dpService.locale_en);
+    this.dpService.locale = this.lang() as Lang_Locale;
   }
 
   // ========== Date Adapter Methods ==========
   protected setDateAdapter(): void {
     // Priority 1: Custom dateAdapter from @Input
-    if (this.dateAdapter) {
-      this.currentDateAdapter = this.dateAdapter;
+    const dateAdapter = this.dateAdapter();
+    if (dateAdapter) {
+      this.currentDateAdapter = dateAdapter;
       return;
     }
 
@@ -180,28 +180,28 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
     }
 
     // Priority 3: Based on calendarType
-    this.currentDateAdapter = this.calendarType === 'jalali' 
+    this.currentDateAdapter = this.calendarType() === 'jalali' 
       ? this.jalali 
       : this.gregorian;
   }
 
   protected get valueAdapter(): DateAdapter<Date> {
-    return this.valueFormat === 'jalali' ? this.jalali : this.gregorian;
+    return this.valueFormat() === 'jalali' ? this.jalali : this.gregorian;
   }
 
   // ========== Form Control Methods ==========
   protected setupFormControls(): void {
-    if (this.isRange) {
+    if (this.isRange()) {
       this.form.get('startDateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value, 'start'));
       
       this.form.get('endDateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value, 'end'));
     } else {
       this.form.get('dateInput')?.valueChanges
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(value => this.onInputChange(value));
     }
   }
@@ -210,7 +210,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   protected onInputChange(value: string, inputType?: RangePartType): void {
     if (this.isInternalChange) return;
 
-    if (this.isRange) {
+    if (this.isRange()) {
       this.handleRangeInputChange(value, inputType);
     } else {
       this.handleSingleInputChange(value);
@@ -249,7 +249,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   protected prepareValueForEmission(): any {
-    if (this.isRange) {
+    if (this.isRange()) {
       if (this.selectedStartDate && this.selectedEndDate) {
         return {
           start: this.convertDateToFormat(this.selectedStartDate),
@@ -265,7 +265,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   protected convertDateToFormat(date: Date): any {
     if (!date) return null;
 
-    switch (this.valueFormat) {
+    switch (this.valueFormat()) {
       case 'date':
         return date;
       case 'jalali':
@@ -280,7 +280,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   // ========== Date Selection Methods ==========
   public onDateSelected(date: Date): void {
     const clampedDate = this.clampDate(date);
-    if (this.isRange) {
+    if (this.isRange()) {
       this.handleRangeDateSelection(clampedDate);
     } else {
       this.handleSingleDateSelection(clampedDate);
@@ -363,7 +363,9 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
       adjustedDate.setMinutes(date.getMinutes());
       adjustedDate.setSeconds(date.getSeconds());
       const { normalizedDate } = this.validateAndNormalizeTime(adjustedDate);
-      adjustedDate = normalizedDate;
+      if (normalizedDate) {
+        adjustedDate = normalizedDate;
+      }
     }
     return adjustedDate;
   }
@@ -434,7 +436,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   protected parseDisabledDates(): Date[] {
-    return this.disabledDates.map(date => {
+    return this.disabledDates().map(date => {
       if (date instanceof Date) {
         return this.currentDateAdapter.startOfDay(date);
       }
@@ -452,20 +454,22 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
       this.currentDateAdapter.isSameDay(dateToCheck, disabledDate)
     );
 
-    const isFilterDisabled = this.disabledDatesFilter
-      ? this.disabledDatesFilter(dateToCheck)
+    const disabledDatesFilter = this.disabledDatesFilter();
+    const isFilterDisabled = disabledDatesFilter
+      ? disabledDatesFilter(dateToCheck)
       : false;
 
     return isDisabledDate || isFilterDisabled;
   }
 
   protected isTimeDisabled(date: Date): boolean {
-    return this.disabledTimesFilter ? this.disabledTimesFilter(date) : false;
+    const disabledTimesFilter = this.disabledTimesFilter();
+    return disabledTimesFilter ? disabledTimesFilter(date) : false;
   }
 
   // ========== UI State Methods ==========
   public open(): void {
-    if (this.isInline || this.isOpen || this.disabled || this.readOnly) {
+    if (this.isInline() || this.isOpen || this.disabled() || this.readOnly()) {
       return;
     }
     this.isOpen = true;
@@ -474,7 +478,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   public close(): void {
-    if (this.isInline || !this.isOpen) {
+    if (this.isInline() || !this.isOpen) {
       return;
     }
     this.isOpen = false;
@@ -495,7 +499,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
     if (value) {
       this.isInternalChange = true;
 
-      if (this.isRange && typeof value === 'object') {
+      if (this.isRange() && typeof value === 'object') {
         const startDate = this.parseIncomingValue(value.start);
         const endDate = this.parseIncomingValue(value.end);
 
@@ -543,7 +547,7 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
   }
 
   setDisabledState?(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.disabled.set(isDisabled);
     this.cdref.markForCheck();
   }
 
@@ -583,14 +587,14 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
     return dateFormatMatch ? dateFormatMatch[0] : '';
   }
 
-  public getPlaceholder(inputType: string = null): string {
-    if (inputType === 'start') return this.lang.startDate;
-    if (inputType === 'end') return this.lang.endDate;
+  public getPlaceholder(inputType: string = ''): string {
+    if (inputType === 'start') return this.lang()!.startDate;
+    if (inputType === 'end') return this.lang()!.endDate;
 
-    switch (this.mode) {
-      case 'month': return this.lang.selectMonth;
-      case 'year': return this.lang.selectYear;
-      default: return this.lang.selectDate;
+    switch (this.mode()) {
+      case 'month': return this.lang()!.selectMonth;
+      case 'year': return this.lang()!.selectYear;
+      default: return this.lang()!.selectDate;
     }
   }
 
@@ -603,18 +607,18 @@ export abstract class BaseDatePickerComponent implements ControlValueAccessor, O
 
   public getConfig(): BaseDatePickerConfig {
     return {
-      rtl: this.rtl,
-      mode: this.mode,
-      isRange: this.isRange,
-      calendarType: this.calendarType,
+      rtl: this.rtl(),
+      mode: this.mode(),
+      isRange: this.isRange(),
+      calendarType: this.calendarType(),
       format: this.format,
-      placement: this.placement,
-      disabled: this.disabled,
-      readOnly: this.readOnly,
+      placement: this.placement(),
+      disabled: this.disabled(),
+      readOnly: this.readOnly(),
       showTimePicker: this.showTimePicker,
-      showSidebar: this.showSidebar,
-      showToday: this.showToday,
-      allowEmpty: this.allowEmpty,
+      showSidebar: this.showSidebar(),
+      showToday: this.showToday(),
+      allowEmpty: this.allowEmpty(),
       minDate: this.minDate,
       maxDate: this.maxDate
     };

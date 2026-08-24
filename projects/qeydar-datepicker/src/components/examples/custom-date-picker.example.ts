@@ -3,10 +3,11 @@
  * این فایل نمونه‌ای از نحوه استفاده از BaseDatePickerComponent برای ایجاد یک DatePicker سفارشی است
  */
 
-import { Component, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, viewChild } from '@angular/core';
 import { BaseDatePickerComponent } from '../base-date-picker.component';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { QeydarDatePickerService } from '../../date-picker.service';
 import { slideAlertMotion } from '../../utils/animation/slide';
 
@@ -15,8 +16,7 @@ import { slideAlertMotion } from '../../utils/animation/slide';
  */
 @Component({
   selector: 'custom-date-picker-example',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [QeydarDatePickerService],
   animations: [slideAlertMotion],
@@ -32,40 +32,39 @@ import { slideAlertMotion } from '../../utils/animation/slide';
           (focus)="onFocus.emit($event)"
           (blur)="onBlur.emit($event)"
           class="custom-input"
-        />
-        <button 
-          type="button" 
-          class="custom-icon-btn" 
-          (click)="toggle()"
-          [disabled]="disabled">
-          📅
-        </button>
-      </div>
-      
-      <div 
-        *ngIf="isOpen" 
-        class="custom-dropdown"
-        [@slideAlertMotion]>
-        <div class="custom-calendar">
-          <div class="custom-header">
-            <button (click)="previousMonth()">◀</button>
-            <span>{{ currentMonth }}</span>
-            <button (click)="nextMonth()">▶</button>
-          </div>
-          
-          <div class="custom-body">
-            <!-- Calendar grid would go here -->
-            <p>Custom Calendar UI</p>
-          </div>
-          
-          <div class="custom-footer">
-            <button (click)="selectToday()">امروز</button>
-            <button (click)="close()">بستن</button>
-          </div>
+          />
+          <button
+            type="button"
+            class="custom-icon-btn"
+            (click)="toggle()"
+            [disabled]="disabled()">
+            📅
+          </button>
         </div>
+    
+        @if (isOpen) {
+          <div
+            class="custom-dropdown"
+            [@slideAlertMotion]>
+            <div class="custom-calendar">
+              <div class="custom-header">
+                <button (click)="previousMonth()">◀</button>
+                <span>{{ currentMonth }}</span>
+                <button (click)="nextMonth()">▶</button>
+              </div>
+              <div class="custom-body">
+                <!-- Calendar grid would go here -->
+                <p>Custom Calendar UI</p>
+              </div>
+              <div class="custom-footer">
+                <button (click)="selectToday()">امروز</button>
+                <button (click)="close()">بستن</button>
+              </div>
+            </div>
+          </div>
+        }
       </div>
-    </div>
-  `,
+    `,
   styles: [`
     .custom-datepicker {
       position: relative;
@@ -193,7 +192,7 @@ import { slideAlertMotion } from '../../utils/animation/slide';
   `]
 })
 export class CustomDatePickerExample extends BaseDatePickerComponent {
-  @ViewChild('input') inputElement: ElementRef<HTMLInputElement>;
+  readonly inputElement = viewChild<ElementRef<HTMLInputElement>>('input');
   
   currentMonth = 'فروردین 1403';
   
@@ -239,8 +238,7 @@ export class CustomDatePickerExample extends BaseDatePickerComponent {
  */
 @Component({
   selector: 'minimal-date-picker',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [QeydarDatePickerService],
   template: `
@@ -251,15 +249,17 @@ export class CustomDatePickerExample extends BaseDatePickerComponent {
         [placeholder]="getPlaceholder()"
         (click)="toggle()"
         class="minimal-input"
-      />
-      
-      <div *ngIf="isOpen" class="minimal-popup">
-        <p>تاریخ انتخاب شده: {{ selectedDate | date:'yyyy/MM/dd' }}</p>
-        <button (click)="selectToday()">امروز</button>
-        <button (click)="close()">بستن</button>
+        />
+    
+        @if (isOpen) {
+          <div class="minimal-popup">
+            <p>تاریخ انتخاب شده: {{ selectedDate | date:'yyyy/MM/dd' }}</p>
+            <button (click)="selectToday()">امروز</button>
+            <button (click)="close()">بستن</button>
+          </div>
+        }
       </div>
-    </div>
-  `,
+    `,
   styles: [`
     .minimal-picker {
       position: relative;
@@ -318,17 +318,16 @@ export class MinimalDatePicker extends BaseDatePickerComponent {
  */
 @Component({
   selector: 'advanced-date-picker',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [QeydarDatePickerService],
   template: `
-    <div class="advanced-picker" [class.rtl]="rtl">
+    <div class="advanced-picker" [class.rtl]="rtl()">
       <div class="picker-header">
         <h3>{{ title }}</h3>
         <button (click)="toggleTheme()">🌓</button>
       </div>
-      
+    
       <div class="picker-body">
         <input
           type="text"
@@ -336,35 +335,39 @@ export class MinimalDatePicker extends BaseDatePickerComponent {
           [placeholder]="getPlaceholder()"
           (click)="toggle()"
           class="advanced-input"
-        />
-        
-        <div *ngIf="isOpen" class="advanced-dropdown">
-          <!-- Advanced calendar UI -->
-          <div class="quick-select">
-            <button (click)="selectToday()">امروز</button>
-            <button (click)="selectYesterday()">دیروز</button>
-            <button (click)="selectTomorrow()">فردا</button>
-          </div>
-          
-          <div class="date-info" *ngIf="selectedDate">
-            <p>تاریخ انتخابی:</p>
-            <p class="selected-date">
-              {{ currentDateAdapter.format(selectedDate, format) }}
-            </p>
-          </div>
-          
-          <div class="actions">
-            <button (click)="clear()">پاک کردن</button>
-            <button (click)="close()">بستن</button>
-          </div>
+          />
+    
+          @if (isOpen) {
+            <div class="advanced-dropdown">
+              <!-- Advanced calendar UI -->
+              <div class="quick-select">
+                <button (click)="selectToday()">امروز</button>
+                <button (click)="selectYesterday()">دیروز</button>
+                <button (click)="selectTomorrow()">فردا</button>
+              </div>
+              @if (selectedDate) {
+                <div class="date-info">
+                  <p>تاریخ انتخابی:</p>
+                  <p class="selected-date">
+                    {{ currentDateAdapter.format(selectedDate, format) }}
+                  </p>
+                </div>
+              }
+              <div class="actions">
+                <button (click)="clear()">پاک کردن</button>
+                <button (click)="close()">بستن</button>
+              </div>
+            </div>
+          }
         </div>
+    
+        @if (footerDescription()) {
+          <div class="picker-footer">
+            <small>{{ footerDescription() }}</small>
+          </div>
+        }
       </div>
-      
-      <div class="picker-footer" *ngIf="footerDescription">
-        <small>{{ footerDescription }}</small>
-      </div>
-    </div>
-  `,
+    `,
   styles: [`
     .advanced-picker {
       font-family: 'Vazir', sans-serif;

@@ -1,8 +1,13 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from '../code-viewer.component';
 import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
 
 @Component({
   selector: 'disabled-dates',
+  standalone: true,
+  imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent],
   template: `
     <div class="disabled-date-demo">
       <div class="disabled-demo-grid">

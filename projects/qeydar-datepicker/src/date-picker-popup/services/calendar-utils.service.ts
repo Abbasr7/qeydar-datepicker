@@ -37,7 +37,7 @@ export class CalendarUtilsService {
   generateYearRanges(length: number = 15, dateAdapter: DateAdapter<Date>, centerDate?: Date): YearRange[] {
     const yearCount = 15;
     // Use provided centerDate if present, otherwise fall back to current date
-    const currentYear = dateAdapter.getYear(centerDate || new Date());
+    const currentYear = dateAdapter.getYear(centerDate || new Date()) ?? new Date().getFullYear();
     // Calculate start so that the currentYear is roughly centered in the overall ranges
     const startYear = currentYear - Math.floor(yearCount / 2) - (yearCount * Math.floor(length / 2));
     const yearRanges: YearRange[] = [];
@@ -75,14 +75,15 @@ export class CalendarUtilsService {
    * Get current month name
    */
   getCurrentMonthName(currentDate: Date, dateAdapter: DateAdapter<Date>): string {
-    return dateAdapter.getMonthNames('long')[dateAdapter.getMonth(currentDate)];
+    const month = dateAdapter.getMonth(currentDate);
+    return dateAdapter.getMonthNames('long')[month ?? 0];
   }
 
   /**
    * Get current year
    */
   getCurrentYear(currentDate: Date, dateAdapter: DateAdapter<Date>): number {
-    return dateAdapter.getYear(currentDate);
+    return dateAdapter.getYear(currentDate) ?? new Date().getFullYear();
   }
 
   /**
@@ -142,7 +143,7 @@ export class CalendarUtilsService {
   createDateForYear(year: number, currentDate: Date, dateAdapter: DateAdapter<Date>): Date {
     return dateAdapter.createDate(
       year, 
-      dateAdapter.getMonth(currentDate), 
+      dateAdapter.getMonth(currentDate) ?? 0, 
       1
     );
   }
@@ -231,14 +232,16 @@ export class CalendarUtilsService {
    * Check if month is active
    */
   isActiveMonth(month: number, currentDate: Date, dateAdapter: DateAdapter<Date>): boolean {
-    return dateAdapter.getMonth(currentDate) === month - 1;
+    const currentMonth = dateAdapter.getMonth(currentDate);
+    return currentMonth !== null && currentMonth === month - 1;
   }
 
   /**
    * Check if year is active
    */
   isActiveYear(year: number, currentDate: Date, dateAdapter: DateAdapter<Date>): boolean {
-    return year === dateAdapter.getYear(currentDate);
+    const currentYear = dateAdapter.getYear(currentDate);
+    return currentYear !== null && year === currentYear;
   }
 
   /**
@@ -256,11 +259,11 @@ export class CalendarUtilsService {
 
     switch (viewMode) {
       case 'days':
-        return dateAdapter.getMonth(date) + 1;
+        return (dateAdapter.getMonth(date) ?? 0) + 1;
       case 'months':
-        return dateAdapter.getYear(date);
+        return dateAdapter.getYear(date) ?? 0;
       case 'years':
-        const currentYear = dateAdapter.getYear(date);
+        const currentYear = dateAdapter.getYear(date) ?? 0;
         const currentRange = yearRanges?.find(range => 
           range.start <= currentYear && range.end >= currentYear
         );

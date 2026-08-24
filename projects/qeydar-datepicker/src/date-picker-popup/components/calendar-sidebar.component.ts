@@ -1,89 +1,104 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, input, output, viewChild } from '@angular/core';
+
 
 @Component({
   selector: 'qeydar-calendar-sidebar',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgFor, NgIf],
-  styleUrls: ['./calendar-sidebar.component.scss'],
+  imports: [],
+  styleUrl: './calendar-sidebar.component.scss',
   template: `
-    <ng-container *ngIf="showSidebar">
-      <div *ngIf="isRange" class="period-selector">
-        <button
-          *ngFor="let period of periods"
-          tabindex="-1"
-          [class.active]="isActivePeriod(period)"
-          (click)="selectPeriod.emit(period)"
-        >
-          {{ period.label }}
-          <span *ngIf="period.arrow" class="arrow">→</span>
-        </button>
-      </div>
-      <div *ngIf="!isRange" class="side-selector" #itemSelector>
-        <ng-container *ngIf="viewMode == 'days'">
-          <button 
-            *ngFor="let month of monthListNum"
-            tabindex="-1"
-            [id]="'selector_'+month"
-            [class.active]="isActiveMonth(month)"
-            [disabled]="isMonthDisabled(month)"
-            (click)="selectMonth.emit(month)">
-            {{ getMonthName(month) }}
-          </button>
-        </ng-container>
-        <ng-container *ngIf="viewMode == 'months'">
-          <button
-            *ngFor="let year of yearList" 
-            tabindex="-1"
-            [id]="'selector_'+year"
-            [class.active]="isActiveYear(year)"
-            [disabled]="isYearDisabled(year)"
-            (click)="selectYear.emit(year)"
-          >
-            {{ year }}
-          </button>
-        </ng-container>
-        <ng-container *ngIf="viewMode == 'years'">
-          <button
-            tabindex="-1"
-            *ngFor="let yearRange of yearRanges" 
-            [id]="'selector_'+yearRange.start"
-            [class.active]="isActiveYearRange(yearRange.start)"
-            [disabled]="isYearRangeDisabled(yearRange)"
-            (click)="selectYearRange.emit(yearRange.start)"
-          >
-            {{ yearRange.start }} - {{ yearRange.end }}
-          </button>
-        </ng-container>
-      </div>
-    </ng-container>
-  `
+    @if (showSidebar()) {
+      @if (isRange()) {
+        <div class="period-selector">
+          @for (period of periods(); track period) {
+            <button
+              tabindex="-1"
+              [class.active]="isActivePeriod()(period)"
+              (click)="selectPeriod.emit(period)"
+              >
+              {{ period.label }}
+              @if (period.arrow) {
+                <span class="arrow">→</span>
+              }
+            </button>
+          }
+        </div>
+      }
+      @if (!isRange()) {
+        <div class="side-selector" #itemSelector>
+          @if (viewMode() == 'days') {
+            @for (month of monthListNum(); track month) {
+              <button
+                tabindex="-1"
+                [id]="'selector_'+month"
+                [class.active]="isActiveMonth()(month)"
+                [disabled]="isMonthDisabled()(month)"
+                (click)="selectMonth.emit(month)">
+                {{ getMonthName()(month) }}
+              </button>
+            }
+          }
+          @if (viewMode() == 'months') {
+            @for (year of yearList(); track year) {
+              <button
+                tabindex="-1"
+                [id]="'selector_'+year"
+                [class.active]="isActiveYear()(year)"
+                [disabled]="isYearDisabled()(year)"
+                (click)="selectYear.emit(year)"
+                >
+                {{ year }}
+              </button>
+            }
+          }
+          @if (viewMode() == 'years') {
+            @for (yearRange of yearRanges(); track yearRange) {
+              <button
+                tabindex="-1"
+                [id]="'selector_'+yearRange.start"
+                [class.active]="isActiveYearRange()(yearRange.start)"
+                [disabled]="isYearRangeDisabled()(yearRange)"
+                (click)="selectYearRange.emit(yearRange.start)"
+                >
+                {{ yearRange.start }} - {{ yearRange.end }}
+              </button>
+            }
+          }
+        </div>
+      }
+    }
+    `
 })
 export class CalendarSidebarComponent implements AfterViewInit {
-  @Input() showSidebar = true;
-  @Input() isRange = false;
-  @Input() viewMode: 'days' | 'months' | 'years' = 'days';
-  @Input() periods: any[] = [];
-  @Input() monthListNum: number[] = [];
-  @Input() yearList: number[] = [];
-  @Input() yearRanges: Array<{ start: number; end: number }> = [];
+  readonly showSidebar = input(true);
+  readonly isRange = input(false);
+  readonly viewMode = input<'days' | 'months' | 'years'>('days');
+  readonly periods = input<any[]>([]);
+  readonly monthListNum = input<number[]>([]);
+  readonly yearList = input<number[]>([]);
+  readonly yearRanges = input<Array<{
+    start: number;
+    end: number;
+}>>([]);
 
-  @Input() isActivePeriod: (period: any) => boolean;
-  @Input() getMonthName: (month: number) => string;
-  @Input() isActiveMonth: (month: number) => boolean;
-  @Input() isMonthDisabled: (month: number) => boolean;
-  @Input() isActiveYear: (year: number) => boolean;
-  @Input() isYearDisabled: (year: number) => boolean;
-  @Input() isActiveYearRange: (startYear: number) => boolean;
-  @Input() isYearRangeDisabled: (range: { start: number; end: number }) => boolean;
+  readonly isActivePeriod = input.required<(period: any) => boolean>();
+  readonly getMonthName = input.required<(month: number) => string>();
+  readonly isActiveMonth = input.required<(month: number) => boolean>();
+  readonly isMonthDisabled = input.required<(month: number) => boolean>();
+  readonly isActiveYear = input.required<(year: number) => boolean>();
+  readonly isYearDisabled = input.required<(year: number) => boolean>();
+  readonly isActiveYearRange = input.required<(startYear: number) => boolean>();
+  readonly isYearRangeDisabled = input.required<(range: {
+    start: number;
+    end: number;
+  }) => boolean>();
 
-  @Output() selectPeriod = new EventEmitter<any>();
-  @Output() selectMonth = new EventEmitter<number>();
-  @Output() selectYear = new EventEmitter<number>();
-  @Output() selectYearRange = new EventEmitter<number>();
+  readonly selectPeriod = output<any>();
+  readonly selectMonth = output<number>();
+  readonly selectYear = output<number>();
+  readonly selectYearRange = output<number>();
 
-  @ViewChild('itemSelector') itemSelector: ElementRef;
+  readonly itemSelector = viewChild<ElementRef>('itemSelector');
 
   ngAfterViewInit(): void {}
 }

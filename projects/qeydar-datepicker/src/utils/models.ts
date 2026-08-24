@@ -13,7 +13,7 @@ export interface YearRange {
 
 export interface DateRange {
     start: Date | string,
-    end: Date | string
+    end: Date | string | null
 }
 
 export interface RangeInputLabels {

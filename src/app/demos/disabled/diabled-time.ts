@@ -1,7 +1,11 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-datepicker.module';
+import { DemoCodeViewerComponent } from '../code-viewer.component';
 
 @Component({
   selector: 'disabled-times',
+  imports: [FormsModule, QeydarDatePickerModule, DemoCodeViewerComponent],
   template: `
     <div class="disabled-time-demo">
       <div class="time-demo-copy"><span class="demo-item-kicker">WORKING HOURS</span><h3>Keep time inside the schedule</h3><p>Allow 09:00–17:00 and pause the picker during the 12:30–13:30 break.</p></div>

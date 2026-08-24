@@ -1,32 +1,37 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+
 
 @Component({
   selector: 'qeydar-calendar-footer',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgIf],
-  styleUrls: ['./calendar-footer.component.scss'],
+  imports: [],
+  styleUrl: './calendar-footer.component.scss',
   template: `
-    <div class="date-picker-footer" *ngIf="footerDescription || showTimePicker || showToday">
-      <div class="footer-description" *ngIf="footerDescription" [innerHtml]="footerDescription">
+    @if (footerDescription() || showTimePicker() || showToday()) {
+      <div class="date-picker-footer">
+        @if (footerDescription()) {
+          <div class="footer-description" [innerHtml]="footerDescription()">
+          </div>
+        }
+        <div class="footer-actions">
+          @if (showTimePicker()) {
+            <button class="footer-button ok" (click)="okClick.emit()">{{ okLabel() }}</button>
+          }
+          @if (showToday()) {
+            <button class="footer-button" (click)="todayClick.emit()">{{ todayLabel() }}</button>
+          }
+        </div>
       </div>
-      <div class="footer-actions">
-        <button *ngIf="showTimePicker" class="footer-button ok" (click)="okClick.emit()">{{ okLabel }}</button>
-        <button *ngIf="showToday" class="footer-button" (click)="todayClick.emit()">{{ todayLabel }}</button>
-      </div>
-    </div>
-  `
+    }
+    `
 })
 export class CalendarFooterComponent {
-  @Input() footerDescription = '';
-  @Input() showTimePicker = false;
-  @Input() showToday = false;
-  @Input() okLabel = 'OK';
-  @Input() todayLabel = 'Today';
+  readonly footerDescription = input('');
+  readonly showTimePicker = input(false);
+  readonly showToday = input(false);
+  readonly okLabel = input('OK');
+  readonly todayLabel = input('Today');
 
-  @Output() todayClick = new EventEmitter<void>();
-  @Output() okClick = new EventEmitter<void>();
+  readonly todayClick = output<void>();
+  readonly okClick = output<void>();
 }
-
-

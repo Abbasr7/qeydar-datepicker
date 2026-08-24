@@ -133,9 +133,9 @@
 
     <div class="page-wrap">
       <!-- Date picker -->
+      @if (showPart === 'datepicker') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'datepicker'"
         aria-labelledby="date-page-title"
       >
         <div class="page-intro">
@@ -218,6 +218,13 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="date-presentation">Language</label>
+                    <select id="date-presentation" [(ngModel)]="pgLang" (ngModelChange)="changeLangLocale($event)">
+                      <option value="fa">فارسی</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
                     <label for="date-format">Display format</label>
                     <input
                       id="date-format"
@@ -229,6 +236,104 @@
                   </div>
                 </div>
               </fieldset>
+
+              @if (presentation === 'modal') {
+              <fieldset>
+                <legend>Modal options</legend>
+                <div class="field-grid">
+                  <div class="form-group">
+                    <label for="modal-animation">Animation</label>
+                    <select
+                      id="modal-animation"
+                      [(ngModel)]="modalAnimation"
+                      (ngModelChange)="applyModalOptions()"
+                    >
+                      <option value="zoom">Zoom</option>
+                      <option value="slide-up">Slide up</option>
+                      <option value="fade">Fade</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="switch-grid">
+                  <div class="switch-field">
+                    <span>Mobile sheet</span
+                    ><label class="switch" for="modal-mobile-sheet"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalMobileSheet"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-mobile-sheet"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only"
+                        >Toggle bottom sheet on small screens</span
+                      ></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Backdrop</span
+                    ><label class="switch" for="modal-backdrop"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalHasBackdrop"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-backdrop"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle dimmed backdrop</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Close on Escape</span
+                    ><label class="switch" for="modal-escape"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalCloseOnEscape"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-escape"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle close on escape</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Close on backdrop click</span
+                    ><label class="switch" for="modal-backdrop-click"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalCloseOnBackdropClick"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-backdrop-click"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only"
+                        >Toggle close on backdrop click</span
+                      ></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Restore focus</span
+                    ><label class="switch" for="modal-restore-focus"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalRestoreFocus"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-restore-focus"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle focus restoration</span></label
+                    >
+                  </div>
+                  <div class="switch-field">
+                    <span>Hide header</span
+                    ><label class="switch" for="modal-hide-header"
+                      ><input
+                        type="checkbox"
+                        [(ngModel)]="modalHideHeader"
+                        (ngModelChange)="applyModalOptions()"
+                        id="modal-hide-header"
+                      /><span class="switch-track" aria-hidden="true"></span
+                      ><span class="sr-only">Toggle modal title bar</span></label
+                    >
+                  </div>
+                </div>
+              </fieldset>
+              }
 
               <fieldset>
                 <legend>Labels and limits</legend>
@@ -245,7 +350,8 @@
                       (ngModelChange)="updateCode()"
                     />
                   </div>
-                  <div class="form-group" *ngIf="!isRange">
+                  @if (!isRange) {
+                  <div class="form-group">
                     <label for="date-input-label">Input label</label>
                     <input
                       id="date-input-label"
@@ -255,7 +361,9 @@
                       (ngModelChange)="updateCode()"
                     />
                   </div>
-                  <div class="range-labels" *ngIf="isRange">
+                  }
+                  @if (isRange) {
+                  <div class="range-labels">
                     <div class="form-group">
                       <label for="date-range-start-label">Start label</label>
                       <input
@@ -277,6 +385,7 @@
                       />
                     </div>
                   </div>
+                }
                   <div class="form-group picker-field">
                     <span class="field-label">Minimum date</span>
                     <qeydar-date-picker
@@ -467,6 +576,8 @@
                 [readOnly]="readOnly"
                 [readOnlyInput]="readOnlyInput"
                 [presentation]="presentation"
+                [lang]="lang_Locale"
+                [modalOptions]="modalOptions"
                 [(ngModel)]="selectedDate"
                 (ngModelChange)="onChange($event)"
               ></qeydar-date-picker>
@@ -553,11 +664,12 @@
           </article>
         </div>
       </section>
+      }
 
       <!-- Time picker -->
+      @if (showPart === 'timepicker') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'timepicker'"
         aria-labelledby="time-page-title"
       >
         <div class="page-intro">
@@ -800,11 +912,12 @@
           </article>
         </div>
       </section>
+      }
 
       <!-- Hijri calendar -->
+      @if (showPart === 'hijri') {
       <section
         class="demo-page"
-        *ngIf="showPart === 'hijri'"
         aria-labelledby="hijri-page-title"
       >
         <div class="page-intro">
@@ -834,6 +947,7 @@
           <div class="example-preview"><hijri-demo></hijri-demo></div>
         </article>
       </section>
+    }
     </div>
   </main>
 </div>
