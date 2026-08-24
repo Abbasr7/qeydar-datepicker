@@ -50,6 +50,7 @@ import {
             [showSidebar]="showSidebar"
             [isRange]="isRange()"
             [viewMode]="viewMode"
+            [currentDate]="currentDate"
             [periods]="periods"
             [monthListNum]="monthListNum"
             [yearList]="yearList"
