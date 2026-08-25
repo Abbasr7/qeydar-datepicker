@@ -501,7 +501,7 @@ The modal reuses the picker's `rtl` setting for direction and the `lang` config 
 ### DatePicker Inputs
 
 | Input               | Type                              | Default      | Description                                                |
-| ------------------- | --------------------------------- | ------------ | ---------------------------------------------------------- | --------- | -------------------------------------------------- |
+| ------------------- | --------------------------------- | ------------ | ---------------------------------------------------------- |
 | rtl                 | boolean                           | false        | Right-to-left mode                                         |
 | mode                | 'day' \| 'month' \| 'year'        | 'day'        | Selection mode                                             |
 | isRange             | boolean                           | false        | Enable range selection                                     |
