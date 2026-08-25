@@ -246,3 +246,82 @@ select {
     color: #34415b;
     font-size: 11px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Template showcase: inline popup chrome                              */
+/* The new template demos render the picker inline ([isInline]="true"),*/
+/* so the popup chrome sits directly in the demo card. Each demo passes */
+/* its own cssClass; the base .calendar is 280px wide, so we widen it. */
+/* ------------------------------------------------------------------ */
+/* The popup element carries both `date-picker-popup` and the cssClass, so the
+   compound selector is needed to outrank the library's `qeydar-date-picker-popup
+   .date-picker-popup` rule (which fixes width: fit-content). */
+.date-picker-popup.type-popup,
+.date-picker-popup.vertical-popup,
+.date-picker-popup.range-popup {
+    max-width: 100%;
+    border-radius: 16px;
+}
+
+.date-picker-popup.type-popup {
+    width: 340px;
+    box-shadow: 0 18px 44px rgba(244, 63, 94, 0.16);
+}
+
+.date-picker-popup.vertical-popup {
+    width: 460px;
+    box-shadow: 0 18px 44px rgba(28, 43, 78, 0.1);
+}
+
+.date-picker-popup.range-popup {
+    width: 600px;
+    box-shadow: 0 18px 44px rgba(62, 45, 143, 0.12);
+}
+
+.type-popup .date-picker-content,
+.vertical-popup .date-picker-content,
+.range-popup .date-picker-content {
+    display: block;
+    max-height: none;
+}
+
+.type-popup .calendar,
+.vertical-popup .calendar,
+.range-popup .calendar {
+    width: auto;
+    max-width: none;
+    padding: 0;
+}
+
+/* Type demo: pink day grid */
+.type-popup .weekdays {
+    padding: 0 16px;
+    margin-bottom: 6px;
+    color: #b8a2c8;
+    font-size: 10px;
+}
+
+.type-popup .days {
+    padding: 2px 16px 12px;
+    gap: 4px;
+}
+
+.type-popup .days button {
+    border-radius: 12px;
+    color: #374154;
+    font-size: 12px;
+}
+
+.type-popup .days button:hover {
+    background: #ffe9f0;
+}
+
+.type-popup .days button.different-month {
+    color: #cbc4d6;
+}
+
+.type-popup .days button.selected {
+    background: linear-gradient(150deg, #ff7db2, #f43f5e);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(244, 63, 94, 0.32);
+}
