@@ -33,8 +33,11 @@ import { DisabledTimes } from './demos/disabled/diabled-time';
 import { CustomRender } from './demos/custom-render';
 import { MaterialRender } from './demos/material-render';
 import { DemoCodeViewerComponent } from './demos/code-viewer.component';
+import { TypeDemoComponent } from './demos/type-demo.component';
+import { VerticalDemoComponent } from './demos/vertical-demo.component';
+import { RangeDemoComponent } from './demos/range-demo.component';
 
-type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
+type DemoPart = 'datepicker' | 'timepicker' | 'hijri' | 'templates';
 
 @Component({
   selector: 'app-root',
@@ -52,6 +55,9 @@ type DemoPart = 'datepicker' | 'timepicker' | 'hijri';
     CustomRender,
     MaterialRender,
     DemoCodeViewerComponent,
+    TypeDemoComponent,
+    VerticalDemoComponent,
+    RangeDemoComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],

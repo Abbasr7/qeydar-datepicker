@@ -13,6 +13,9 @@ import { HeroDemoComponent } from './demos/hero-demo.component';
 import { WheelDemoComponent } from './demos/wheel-demo.component';
 import { HijriDemoComponent } from './demos/hijri-demo.component';
 import { DemoCodeViewerComponent } from './demos/code-viewer.component';
+import { TypeDemoComponent } from './demos/type-demo.component';
+import { VerticalDemoComponent } from './demos/vertical-demo.component';
+import { RangeDemoComponent } from './demos/range-demo.component';
 import { BidiModule } from "@angular/cdk/bidi";
 // import { QeydarDatePickerModule } from '@qeydar/datepicker';
 import { AdvancedDatePicker, CustomDatePickerExample, MinimalDatePicker } from 'projects/qeydar-datepicker/src/components/examples/custom-date-picker.example';
@@ -44,6 +47,9 @@ import { QeydarDatePickerModule } from 'projects/qeydar-datepicker/src/qeydar-da
     WheelDemoComponent,
     HijriDemoComponent,
     DemoCodeViewerComponent,
+    TypeDemoComponent,
+    VerticalDemoComponent,
+    RangeDemoComponent,
 ],
   providers: [],
   bootstrap: [AppComponent]

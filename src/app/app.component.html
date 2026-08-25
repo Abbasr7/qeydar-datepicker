@@ -71,6 +71,23 @@
               <span>Hijri calendar</span>
             </button>
           </li>
+          <li>
+            <button
+              type="button"
+              class="nav-item"
+              [class.active]="showPart === 'templates'"
+              [attr.aria-current]="showPart === 'templates' ? 'page' : null"
+              (click)="selectPart('templates'); closeSidebar()"
+            >
+              <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="5" rx="2"></rect>
+                <rect x="3" y="10" width="8" height="5" rx="2"></rect>
+                <rect x="13" y="10" width="8" height="5" rx="2"></rect>
+                <rect x="3" y="16" width="18" height="4" rx="2"></rect>
+              </svg>
+              <span>Custom templates</span>
+            </button>
+          </li>
         </ul>
 
         <p class="nav-label nav-label--lower">Resources</p>
@@ -946,6 +963,73 @@
           </div>
           <div class="example-preview"><hijri-demo></hijri-demo></div>
         </article>
+      </section>
+    }
+
+      <!-- Custom templates showcase -->
+      @if (showPart === 'templates') {
+      <section
+        class="demo-page"
+        aria-labelledby="templates-page-title"
+      >
+        <div class="page-intro">
+          <div>
+            <span class="page-kicker">CUSTOM TEMPLATES</span>
+            <h1 id="templates-page-title">Rebuild the calendar, keep the logic.</h1>
+            <p>
+              Project a handful of ng-template slots and redesign the header, the
+              body, or the entire surface — selection, ranges and validation stay
+              wired for you.
+            </p>
+          </div>
+          <div class="intro-note">
+            <span class="intro-note-dot"></span>Template slots
+          </div>
+        </div>
+
+        <div class="example-grid">
+          <article class="example-card">
+            <div class="example-heading">
+              <span class="example-number">01</span>
+              <div>
+                <h3>Blush header</h3>
+                <p>
+                  A pink hero header that mirrors the selected Jalali date over a
+                  restyled day grid.
+                </p>
+              </div>
+            </div>
+            <div class="example-preview"><type-demo></type-demo></div>
+          </article>
+
+          <article class="example-card">
+            <div class="example-heading">
+              <span class="example-number">02</span>
+              <div>
+                <h3>Vertical agenda</h3>
+                <p>
+                  A scrollable column of full dates sits beside the month
+                  calendar, sharing one selection.
+                </p>
+              </div>
+            </div>
+            <div class="example-preview"><vertical-demo></vertical-demo></div>
+          </article>
+
+          <article class="example-card example-card--featured">
+            <div class="example-heading">
+              <span class="example-number">03</span>
+              <div>
+                <h3>Two-month range</h3>
+                <p>
+                  Pick a span across two Jalali months side by side with a live
+                  hover preview and rich colors.
+                </p>
+              </div>
+            </div>
+            <div class="example-preview"><range-demo></range-demo></div>
+          </article>
+        </div>
       </section>
     }
     </div>
