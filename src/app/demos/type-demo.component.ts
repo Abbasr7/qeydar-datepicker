@@ -49,14 +49,18 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
                     [disabled]="ctx.prevDisabled"
                     aria-label="ماه قبل"
                     (click)="ctx.prev()"
-                  >‹</button>
+                  >
+                    ‹
+                  </button>
                   <button
                     type="button"
                     class="type-nav-btn"
                     [disabled]="ctx.nextDisabled"
                     aria-label="ماه بعد"
                     (click)="ctx.next()"
-                  >›</button>
+                  >
+                    ›
+                  </button>
                 </div>
               </div>
 
@@ -74,8 +78,25 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
                 class="type-switch"
                 (click)="ctx.showMonths()"
               >
-                {{ ctx.currentMonthName }} {{ faDigits(ctx.currentYear) }}
-                <span class="type-switch-arrow" aria-hidden="true">⌄</span>
+                <span>
+                  {{ ctx.currentMonthName }} {{ faDigits(ctx.currentYear) }}
+                </span>
+                <div class="type-switch-arrow" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="{1.5}"
+                    stroke="currentColor"
+                    className="size-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 9h16.5m-16.5 6.75h16.5"
+                    />
+                  </svg>
+                </div>
               </button>
             </div>
           </ng-template>
@@ -102,16 +123,16 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
             <div class="type-footer">
               <span class="type-footer-hint">{{ formatFull(pickedDate) }}</span>
               <div class="type-footer-actions">
-                <button
-                  type="button"
-                  class="type-btn"
-                  (click)="ctx.today()"
-                >امروز</button>
+                <button type="button" class="type-btn" (click)="ctx.today()">
+                  امروز
+                </button>
                 <button
                   type="button"
                   class="type-btn type-btn--primary"
                   (click)="ctx.confirm()"
-                >تأیید</button>
+                >
+                  تأیید
+                </button>
               </div>
             </div>
           </ng-template>
@@ -164,7 +185,11 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
         margin-top: 18px;
         padding: 24px 16px;
         border-radius: 14px;
-        background: radial-gradient(120% 140% at 50% 0%, #fff5f8 0%, #fdeef3 70%);
+        background: radial-gradient(
+          120% 140% at 50% 0%,
+          #fff5f8 0%,
+          #fdeef3 70%
+        );
       }
 
       .type-picker {
@@ -175,7 +200,12 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
       /* ---------- Pink header ---------- */
       .type-header {
         padding: 20px 18px 14px;
-        background: linear-gradient(150deg, #ff8fb8 0%, #ff5d8f 52%, #f43f5e 100%);
+        background: linear-gradient(
+          150deg,
+          #ff8fb8 0%,
+          #ff5d8f 52%,
+          #f43f5e 100%
+        );
         color: #fff;
       }
 
@@ -211,7 +241,9 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
         font-size: 16px;
         line-height: 1;
         cursor: pointer;
-        transition: background 140ms ease, opacity 140ms ease;
+        transition:
+          background 140ms ease,
+          opacity 140ms ease;
       }
 
       .type-nav-btn:hover:not(:disabled) {
@@ -278,6 +310,8 @@ import { JalaliDateAdapter } from 'projects/qeydar-datepicker/src/date-adapter';
       .type-switch-arrow {
         margin-right: auto;
         font-size: 14px;
+        width: 20px;
+        height: 20px;
       }
 
       /* ---------- Day cells ---------- */
@@ -383,7 +417,9 @@ export class TypeDemoComponent {
   }
 
   formatFull(date: Date | null): string {
-    return date ? this.faDigits(this.jalali.format(date, 'EEEE d MMMM yyyy')) : '—';
+    return date
+      ? this.faDigits(this.jalali.format(date, 'EEEE d MMMM yyyy'))
+      : '—';
   }
 
   isToday(date: Date): boolean {
