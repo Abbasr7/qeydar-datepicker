@@ -1,8 +1,8 @@
 <div align="center">
   <a href="https://www.npmjs.com/package/@qeydar/datepicker" target="_blank">
-    <img src="https://img.shields.io/badge/Npm-v3.0.0-blue" alt="NPM Version" />
+    <img src="https://img.shields.io/badge/Npm-v3.0.1-blue" alt="NPM Version" />
   </a>
-  <img src="https://img.shields.io/badge/Angular-%E2%89%A520.0.0-fe019a" alt="Angular Version" />
+  <img src="https://img.shields.io/badge/Angular-%E2%89%A521.0.0-fe019a" alt="Angular Version" />
 </div>
 
 # Qeydar Date and Time Pickers
