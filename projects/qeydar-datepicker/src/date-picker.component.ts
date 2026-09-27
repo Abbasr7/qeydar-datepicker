@@ -168,6 +168,7 @@ import { CustomTemplate } from './utils/template.directive';
         <ng-template #icon>
           <button
             class="calendar-button"
+            type="button"
             (click)="toggleDatePicker(null, $event)"
             tabindex="-1"
           >

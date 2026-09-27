@@ -16,6 +16,7 @@ import { NgTemplateOutlet } from '@angular/common';
         <div class="days">
             @for (day of days(); track day) {
               <button
+                type="button"
                 tabindex="-1"
                 [class.different-month]="!isSameMonth()(day, currentDate())"
                 [class.selected]="isSelected()(day)"

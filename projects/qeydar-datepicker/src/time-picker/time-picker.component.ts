@@ -97,6 +97,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
           @if (showIcon()) {
             <button
               class="time-button"
+              type="button"
               (click)="toggleTimePicker($event)"
               tabindex="-1"
             >

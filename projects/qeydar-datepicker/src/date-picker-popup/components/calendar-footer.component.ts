@@ -15,10 +15,10 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
         }
         <div class="footer-actions">
           @if (showTimePicker()) {
-            <button class="footer-button ok" (click)="okClick.emit()">{{ okLabel() }}</button>
+            <button type="button" class="footer-button ok" (click)="okClick.emit()">{{ okLabel() }}</button>
           }
           @if (showToday()) {
-            <button class="footer-button" (click)="todayClick.emit()">{{ todayLabel() }}</button>
+            <button type="button" class="footer-button" (click)="todayClick.emit()">{{ todayLabel() }}</button>
           }
         </div>
       </div>

@@ -12,6 +12,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, input, o
         <div class="period-selector">
           @for (period of periods(); track period) {
             <button
+              type="button"
               tabindex="-1"
               [class.active]="isActivePeriod()(period)"
               (click)="selectPeriod.emit(period)"
@@ -29,6 +30,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, input, o
           @if (viewMode() == 'days') {
             @for (month of monthListNum(); track month) {
               <button
+                type="button"
                 tabindex="-1"
                 [id]="'selector_'+month"
                 [class.active]="isActiveMonth()(month)"
@@ -41,6 +43,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, input, o
           @if (viewMode() == 'months') {
             @for (year of yearList(); track year) {
               <button
+                type="button"
                 tabindex="-1"
                 [id]="'selector_'+year"
                 [class.active]="isActiveYear()(year)"
@@ -54,6 +57,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, input, o
           @if (viewMode() == 'years') {
             @for (yearRange of yearRanges(); track yearRange) {
               <button
+                type="button"
                 tabindex="-1"
                 [id]="'selector_'+yearRange.start"
                 [class.active]="isActiveYearRange()(yearRange.start)"

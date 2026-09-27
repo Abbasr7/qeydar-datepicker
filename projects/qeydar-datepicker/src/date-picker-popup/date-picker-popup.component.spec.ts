@@ -22,13 +22,13 @@ import { ValidationStrategyService } from './services/validation-strategy.servic
       <span class="legacy-day">{{ dayNumber }}</span>
     </ng-template>
     <ng-template qeydarTemplate="body" let-context>
-      <button class="body-day" (click)="context.actions.selectDay(context.days[0])">Body</button>
+      <button type="button" class="body-day" (click)="context.actions.selectDay(context.days[0])">Body</button>
     </ng-template>
     <ng-template qeydarTemplate="header" let-context>
-      <button class="custom-header" (click)="context.next()">Header</button>
+      <button type="button" class="custom-header" (click)="context.next()">Header</button>
     </ng-template>
     <ng-template qeydarTemplate="footer" let-context>
-      <button class="custom-footer" (click)="context.cancel()">Footer</button>
+      <button type="button" class="custom-footer" (click)="context.cancel()">Footer</button>
     </ng-template>
   `
 })

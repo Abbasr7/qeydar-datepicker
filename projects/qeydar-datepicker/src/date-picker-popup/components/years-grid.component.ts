@@ -11,6 +11,7 @@ import { NgTemplateOutlet } from '@angular/common';
       <div class="years">
         @for (year of yearList(); track year) {
           <button
+            type="button"
             tabindex="-1"
             [class.selected]="isActiveYear()(year)"
             [class.in-range]="isYearInRange()(year)"

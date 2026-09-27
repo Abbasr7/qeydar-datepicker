@@ -11,6 +11,7 @@ import { NgTemplateOutlet } from '@angular/common';
       <div class="months">
         @for (month of monthListNum(); track month) {
           <button
+            type="button"
             tabindex="-1"
             [class.selected]="isActiveMonthNumber()(month)"
             [class.in-range]="isMonthInRange()(month)"
